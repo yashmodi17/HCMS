@@ -9,13 +9,6 @@ import notificationRoutes from "./notififcationRoutes.js";
 
 const router = express.Router();
 
-// Routes
-
-// For debugging purposes
-// router.use("/user", (req, res, next) => {
-//     console.log("Users route hit!");
-//     next();
-//   });
 
 router.use("/user", userRouter);
 router.use("/leave", medicalLeaveRouter);
