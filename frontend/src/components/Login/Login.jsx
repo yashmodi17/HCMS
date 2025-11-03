@@ -31,11 +31,10 @@ export default function Login() {
 
         
         if (role === "doctor") {
-          navigate ( "/doctor");  
-        } else if (role === "student") {
-          navigate("/profile");
-        }
-        else {
+          navigate("/doctor");  
+        } else if (role === "aanganwadi_staff") {
+          navigate("/dashboard");
+        } else if (role === "coordinator") {
           navigate("/admin");
         }
       }

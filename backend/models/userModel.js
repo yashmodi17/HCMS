@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true }, // Hashed
     role: {
       type: String,
-      enum: ["student", "doctor", "admin"],
+      enum: ["aanganwadi_staff", "coordinator", "doctor"],
       required: true,
     },
 
@@ -15,19 +15,18 @@ const UserSchema = new mongoose.Schema(
     dateOfBirth: { type: Date },
     gender: { type: String, enum: ["Male", "Female", "Other"] },
 
-    // Students
-    healthRecords: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "HealthRecord" },
-    ],
+    // Aanganwadi Staff specific fields
+    aanganwadiName: { type: String }, // Name of the aanganwadi they work at
+    aanganwadiAddress: { type: String }, // Address of the aanganwadi
+    aanganwadiCode: { type: String }, // Unique code for the aanganwadi
+    staffId: { type: String }, // Staff identification number
 
     // Doctors
     specialization: { type: String }, // Only for doctors
-    availableSlots: [
-      {
-        dateTime: { type: Date, required: true }, // Full datetime of the appointment slot
-        isBooked: { type: Boolean, default: false }
-      }
-    ],
+    isVolunteer: { type: Boolean, default: false }, // Whether doctor volunteers for aanganwadis
+    
+    // Coordinators
+    assignedAanganwadis: [{ type: String }], // List of aanganwadi codes they coordinate
   },
   { timestamps: true }
 );

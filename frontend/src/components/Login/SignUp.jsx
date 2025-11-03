@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function SignUp() {
   const { login } = useContext(UserContext);
-  const [role, setRole] = useState("student");
+  const [role, setRole] = useState("aanganwadi_staff");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +21,16 @@ export default function SignUp() {
     setError(null); // Reset any previous error
 
     const formData = { role, name, email, password, phone, dateOfBirth, gender };
-    if (role === "doctor") formData.specialization = extra;
+    
+    // Add role-specific fields
+    if (role === "doctor") {
+      formData.specialization = extra;
+    } else if (role === "aanganwadi_staff") {
+      // For aanganwadi staff, we might want to collect aanganwadi details
+      // For now, we'll handle this in a separate step or admin assignment
+    } else if (role === "coordinator") {
+      // Coordinators will be assigned aanganwadis later by admin
+    }
 
     try {
       const response = await api.post(
@@ -65,7 +74,7 @@ export default function SignUp() {
         <div className="w-full md:w-1/2 p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex items-center space-x-4 mb-6">
-              {["student", "doctor", "admin"].map((r) => (
+              {["aanganwadi_staff", "coordinator", "doctor"].map((r) => (
                 <label key={r} className="flex items-center space-x-2">
                   <input
                     type="radio"
@@ -74,7 +83,7 @@ export default function SignUp() {
                     onChange={() => setRole(r)}
                     className="form-radio text-green-500"
                   />
-                  <span className="capitalize">{r}</span>
+                  <span className="capitalize">{r.replace('_', ' ')}</span>
                 </label>
               ))}
             </div>
@@ -128,12 +137,22 @@ export default function SignUp() {
             {role === "doctor" && (
               <input
                 type="text"
-                placeholder="Specialization"
+                placeholder="Medical Specialization"
                 value={extra}
                 onChange={(e) => setExtra(e.target.value)}
                 className="w-full p-4 border rounded-lg focus:ring focus:ring-green-300"
                 required
               />
+            )}
+            {role === "aanganwadi_staff" && (
+              <div className="text-sm text-gray-600 p-3 bg-blue-50 rounded-lg">
+                <strong>Note:</strong> Your aanganwadi details will be assigned by a coordinator after registration.
+              </div>
+            )}
+            {role === "coordinator" && (
+              <div className="text-sm text-gray-600 p-3 bg-green-50 rounded-lg">
+                <strong>Note:</strong> You will be assigned aanganwadis to coordinate after registration approval.
+              </div>
             )}
             {error && (
               <div className="text-red-500">{error}</div>

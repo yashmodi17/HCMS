@@ -3,7 +3,7 @@ import { getUserNotifications,markAllNotificationsAsRead ,markSingleNotification
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
-router.get("/",authMiddleware(["student","doctor","admin"]), getUserNotifications);
+router.get("/",authMiddleware(["aanganwadi_staff","doctor","coordinator"]), getUserNotifications);
 router.patch("/mark-all-read/:id", markAllNotificationsAsRead);
 //for single notification
 router.patch('/mark-single-read/:notificationId',markSingleNotificationAsRead );

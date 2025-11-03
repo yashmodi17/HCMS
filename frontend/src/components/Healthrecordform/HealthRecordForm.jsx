@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const HealthRecordForm = () => {
   const [formData, setFormData] = useState({
+    childId: '', // Add childId for new system
     doctorId: '',
     diagnosis: '',
     treatment: '',
@@ -12,8 +13,11 @@ const HealthRecordForm = () => {
     isManualUpload: false,
     externalDoctorName: '',
     externalHospitalName: '',
+    height: '',
+    weight: '',
   });
   const [doctorList, setDoctorList] = useState([]);
+  const [childrenList, setChildrenList] = useState([]); // Add children list
   const [attachments, setAttachments] = useState([]);
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
@@ -26,7 +30,7 @@ const HealthRecordForm = () => {
     }
   }, [formData.date]);
 
-  // Fetch doctors list on mount
+  // Fetch doctors and children list on mount
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -41,7 +45,22 @@ const HealthRecordForm = () => {
         setMessage("Error fetching doctors list.");
       }
     };
+
+    const fetchChildren = async () => {
+      try {
+        const response = await api.get("/children/my-children");
+        if (response.status === 200) {
+          setChildrenList(response.data);
+        } else {
+          setMessage("Failed to load children list.");
+        }
+      } catch (error) {
+        setMessage("Error fetching children list.");
+      }
+    };
+
     fetchDoctors();
+    fetchChildren();
   }, []);
 
   const handleChange = (e) => {
@@ -60,6 +79,7 @@ const HealthRecordForm = () => {
     setMessage('');
 
     const submissionData = new FormData();
+    submissionData.append('childId', formData.childId);
     submissionData.append('doctorId', formData.doctorId);
     submissionData.append('diagnosis', formData.diagnosis);
     submissionData.append('treatment', formData.treatment);
@@ -67,9 +87,22 @@ const HealthRecordForm = () => {
     submissionData.append('date', formData.date);
     submissionData.append('isManualUpload', formData.isManualUpload.toString());
 
+    // Add BMI data if provided
+    if (formData.height) {
+      submissionData.append('height', formData.height);
+    }
+    if (formData.weight) {
+      submissionData.append('weight', formData.weight);
+    }
+
     if (formData.isManualUpload) {
       submissionData.append('externalDoctorName', formData.externalDoctorName);
       submissionData.append('externalHospitalName', formData.externalHospitalName);
+    }
+
+    if (formData.childId === "") {
+      setMessage("Child selection is required.");
+      return;
     }
 
     if (formData.doctorId === "" && !formData.isManualUpload) {
@@ -110,6 +143,28 @@ const HealthRecordForm = () => {
           <p className="mb-4 text-center text-sm text-green-700">{message}</p>
         )}
         <form onSubmit={handleSubmit} encType="multipart/form-data">
+          {/* Child Selection */}
+          <div className="mb-5">
+            <label htmlFor="childId" className="block text-gray-700 font-semibold mb-2">
+              Select Child <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="childId"
+              name="childId"
+              value={formData.childId}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300 transition duration-200"
+              required
+            >
+              <option value="">-- Select a child --</option>
+              {childrenList.map((child) => (
+                <option key={child._id} value={child._id}>
+                  {child.name} - {child.childId} (Parent: {child.parentName})
+                </option>
+              ))}
+            </select>
+          </div>
+          
           {/* Doctor Selection */}
           <div className="mb-5">
             <label htmlFor="doctorId" className="block text-gray-700 font-semibold mb-2">
@@ -191,6 +246,61 @@ const HealthRecordForm = () => {
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300 transition duration-200"
             />
+          </div>
+
+          {/* BMI Tracking Section */}
+          <div className="mb-5 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h3 className="text-lg font-semibold text-blue-800 mb-3">BMI Tracking (Optional)</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="height" className="block text-gray-700 font-semibold mb-2">
+                  Height (cm)
+                </label>
+                <input
+                  type="number"
+                  id="height"
+                  name="height"
+                  value={formData.height}
+                  onChange={handleChange}
+                  placeholder="Enter height in centimeters"
+                  min="100"
+                  max="250"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300 transition duration-200"
+                />
+              </div>
+              <div>
+                <label htmlFor="weight" className="block text-gray-700 font-semibold mb-2">
+                  Weight (kg)
+                </label>
+                <input
+                  type="number"
+                  id="weight"
+                  name="weight"
+                  value={formData.weight}
+                  onChange={handleChange}
+                  placeholder="Enter weight in kilograms"
+                  min="20"
+                  max="300"
+                  step="0.1"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300 transition duration-200"
+                />
+              </div>
+            </div>
+            {formData.height && formData.weight && (
+              <div className="mt-3 p-3 bg-white rounded border">
+                <p className="text-sm text-gray-600">
+                  BMI Preview: {((formData.weight / ((formData.height / 100) ** 2)).toFixed(1))}
+                  {' - '}
+                  {(() => {
+                    const bmi = formData.weight / ((formData.height / 100) ** 2);
+                    if (bmi < 18.5) return 'Underweight';
+                    if (bmi < 25) return 'Normal weight';
+                    if (bmi < 30) return 'Overweight';
+                    return 'Obese';
+                  })()}
+                </p>
+              </div>
+            )}
           </div>
           {/* Manual Upload Checkbox */}
           <div className="mb-5 flex items-center">

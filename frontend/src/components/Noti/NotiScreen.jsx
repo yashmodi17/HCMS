@@ -33,10 +33,10 @@ const NotiScreen = () => {
     },
     {
       id: 3,
-      type: 'leave',
-      title: 'Leave Application Approved',
-      description: 'Medical Leave: March 28 - April 1',
-      status: 'approved',
+      type: 'vaccination',
+      title: 'Vaccination Record Added',
+      description: 'COVID-19 Vaccine: March 28, 2025',
+      status: 'completed',
       unread: false,
       timestamp: '2h',
       dateCreated: new Date(2025, 2, 29, 8, 0)
@@ -65,9 +65,9 @@ const NotiScreen = () => {
     },
     {
       id: 6,
-      type: 'leave',
-      title: 'Leave Application Under Review',
-      description: 'Personal Leave: April 15 - April 18',
+      type: 'vaccination',
+      title: 'Vaccination Record Under Review',
+      description: 'MMR Vaccine: April 15, 2025',
       status: 'pending',
       unread: true,
       timestamp: '1d',
@@ -138,7 +138,7 @@ const NotiScreen = () => {
         return <Calendar className="h-5 w-5 text-green-600" />;
       case 'videoConsultation':
         return <VideoIcon className="h-5 w-5 text-green-600" />;
-      case 'leave':
+      case 'vaccination':
         return <FileText className="h-5 w-5 text-green-600" />;
       default:
         return <Bell className="h-5 w-5 text-green-600" />;
@@ -265,7 +265,7 @@ const NotiScreen = () => {
                     </label>
                     <label className="flex items-center">
                       <input type="checkbox" className="h-4 w-4 text-green-600 rounded" defaultChecked />
-                      <span className="ml-2 text-sm text-gray-700">Leave Applications</span>
+                      <span className="ml-2 text-sm text-gray-700">Vaccination Records</span>
                     </label>
                   </div>
                   

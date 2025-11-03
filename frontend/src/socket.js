@@ -30,13 +30,13 @@ socket.on("appointmentUpdate", (data) => {
   console.log("Appointment Update Notification:", data);
   showAlert(data.message, 'custom', 10000);
 });
-socket.on("newLeaveRequest", (data) => {
-  console.log("newLeave Request:",data);
+socket.on("newVaccinationRecord", (data) => {
+  console.log("newVaccination Record:",data);
   showAlert(data.message, 'custom', 10000);
 });
 
-socket.on("leaveStatusUpdate", (data) => {
-  console.log("Leave status updated: ",data);
+socket.on("vaccinationStatusUpdate", (data) => {
+  console.log("Vaccination status updated: ",data);
   showAlert(data.message, 'custom', 10000);
 });
 

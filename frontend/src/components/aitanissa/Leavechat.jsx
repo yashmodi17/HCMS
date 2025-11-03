@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../../axios.config.js';
 
-const Leavechat = () => {
+const Vaccinationchat = () => {
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -14,8 +14,8 @@ const Leavechat = () => {
     setError('');
 
     try {
-      // Make API call to the leave-related API
-      const res = await api.post('http://localhost:5000/leaverelated', {
+      // Make API call to the vaccination-related API
+      const res = await api.post('http://localhost:5000/vaccinationrelated', {
         question: question,
       });
 
@@ -30,7 +30,7 @@ const Leavechat = () => {
       // Clear question input
       setQuestion('');
     } catch (err) {
-      setError('Error getting leave status. Please try again.');
+      setError('Error getting vaccination information. Please try again.');
       console.error('Error:', err);
     } finally {
       setLoading(false);
@@ -54,8 +54,8 @@ const Leavechat = () => {
       {/* Header */}
       <header className="bg-gradient-to-r from-green-600 to-green-500 text-white p-4 shadow-md">
         <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-2xl md:text-3xl font-bold">Leave Management System</h1>
-          <p className="text-sm md:text-base text-green-100">Ask questions about your leave status</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Vaccination Management System</h1>
+          <p className="text-sm md:text-base text-green-100">Ask questions about your vaccination status</p>
         </div>
       </header>
 
@@ -82,7 +82,7 @@ const Leavechat = () => {
                     />
                   </svg>
                 </div>
-                Ask a question about your leave status
+                Ask a question about your vaccination status
               </div>
             ) : (
               <div className="space-y-4">
@@ -114,7 +114,7 @@ const Leavechat = () => {
                   type="text"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Ask about your leave status..."
+                  placeholder="Ask about your vaccination status..."
                   className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                 />
@@ -180,9 +180,10 @@ const Leavechat = () => {
           <div className="mt-6 text-xs text-gray-500">
             <p>Example questions:</p>
             <ul className="mt-2 list-disc pl-5 space-y-1">
-              <li>How many leave days do I have left?</li>
-              <li>When was my last leave request?</li>
-              <li>Are any of my leaves confirmed?</li>
+              <li>What vaccinations do I need to complete?</li>
+              <li>When was my last vaccination?</li>
+              <li>What is my vaccination completion percentage?</li>
+              <li>Which mandatory vaccines am I missing?</li>
             </ul>
           </div>
         </div>
@@ -191,4 +192,4 @@ const Leavechat = () => {
   );
 };
 
-export default Leavechat;
+export default Vaccinationchat;

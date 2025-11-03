@@ -1,20 +1,21 @@
 import express from "express";
 import userRouter from "./userRoute.js";
-import medicalLeaveRouter from "./medicalLeaveRoute.js";
+import vaccinationRouter from "./vaccinationRoutes.js";
 import healthRecordRouter from "./healthRecordRoutes.js";
-import appointmentRouter from "./appointmentRoutes.js";
+import childRouter from "./childRoutes.js";
+import donationRouter from "./donationRoutes.js";
 import adminRouter from "./adminRoutes.js";
 import doctorRouter from "./doctorRoutes.js";
 import notificationRoutes from "./notififcationRoutes.js";
 
 const router = express.Router();
 
-
 router.use("/user", userRouter);
-router.use("/leave", medicalLeaveRouter);
+router.use("/vaccination", vaccinationRouter);
 router.use("/health-record", healthRecordRouter);
-router.use("/appointment", appointmentRouter);
-router.use("/medical-leaves", adminRouter);
+router.use("/children", childRouter);
+router.use("/donations", donationRouter);
+router.use("/coordinator", adminRouter);
 router.use("/doctor", doctorRouter);
 router.use("/notifications",notificationRoutes);
 

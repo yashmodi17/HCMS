@@ -3,9 +3,9 @@ import { Mic, MicOff, Calendar, Clock, User, FileText, Send } from 'lucide-react
 
 const Voice = () => {
   const [isListening, setIsListening] = useState(false);
-  const [mode, setMode] = useState('initial'); // initial, doctor, leave
+  const [mode, setMode] = useState('initial'); // initial, doctor, vaccination
   const [messages, setMessages] = useState([
-    { sender: 'ai', text: 'Hello! Would you like to book a doctor appointment or apply for leave?' }
+    { sender: 'ai', text: 'Hello! Would you like to book a doctor appointment or manage vaccinations?' }
   ]);
   const [userInput, setUserInput] = useState('');
 
@@ -26,11 +26,11 @@ const Voice = () => {
       if (userInput.toLowerCase().includes('doctor') || userInput.toLowerCase().includes('appointment')) {
         setMode('doctor');
         aiResponse = "Let's book your doctor appointment. What's the doctor's name?";
-      } else if (userInput.toLowerCase().includes('leave')) {
-        setMode('leave');
-        aiResponse = "I'll help you apply for leave. How many days do you need off?";
+      } else if (userInput.toLowerCase().includes('vaccination') || userInput.toLowerCase().includes('vaccine')) {
+        setMode('vaccination');
+        aiResponse = "I'll help you manage your vaccinations. What vaccination information do you need?";
       } else {
-        aiResponse = "I didn't catch that. Would you like to book a doctor appointment or apply for leave?";
+        aiResponse = "I didn't catch that. Would you like to book a doctor appointment or manage vaccinations?";
       }
     } else if (mode === 'doctor') {
       // Simple state management for doctor booking flow
@@ -43,15 +43,15 @@ const Voice = () => {
         aiResponse = "Great! I've scheduled your appointment. Anything else you need?";
         setMode('initial');
       }
-    } else if (mode === 'leave') {
-      // Simple state management for leave application flow
+    } else if (mode === 'vaccination') {
+      // Simple state management for vaccination flow
       const lastMessage = messages[messages.length - 1];
-      if (lastMessage.text.includes("how many days")) {
-        aiResponse = "What dates will you be away?";
-      } else if (lastMessage.text.includes("dates")) {
-        aiResponse = "What's the reason for your leave?";
-      } else if (lastMessage.text.includes("reason for your leave")) {
-        aiResponse = "Your leave request has been submitted. Is there anything else I can help with?";
+      if (lastMessage.text.includes("vaccination information")) {
+        aiResponse = "Would you like to check your vaccination status or add a new vaccination record?";
+      } else if (lastMessage.text.includes("status")) {
+        aiResponse = "Your vaccination status shows you have completed 4 out of 6 mandatory vaccines.";
+      } else if (lastMessage.text.includes("vaccination record")) {
+        aiResponse = "Your vaccination record has been updated. Is there anything else I can help with?";
         setMode('initial');
       }
     }
@@ -99,17 +99,17 @@ const Voice = () => {
         
         <button 
           className={`flex items-center space-x-2 px-4 py-2 rounded-lg shadow-md transition-all ${
-            mode === 'leave' 
+            mode === 'vaccination' 
               ? 'bg-green-600 text-white' 
               : 'bg-white text-green-700 border-2 border-green-500 hover:bg-green-50'
           }`}
           onClick={() => {
-            setMode('leave');
-            setMessages([...messages, { sender: 'ai', text: "I'll help you apply for leave. How many days do you need off?" }]);
+            setMode('vaccination');
+            setMessages([...messages, { sender: 'ai', text: "I'll help you manage your vaccinations. What vaccination information do you need?" }]);
           }}
         >
           <FileText size={18} />
-          <span>Apply for Leave</span>
+          <span>Manage Vaccinations</span>
         </button>
       </div>
       

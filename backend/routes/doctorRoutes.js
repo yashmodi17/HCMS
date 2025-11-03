@@ -1,13 +1,24 @@
 import express from "express";
-import {updateAppointmentStatus, updateTimeSlots, getDoctorAppointments, updatePrescription} from "../controllers/doctorContoller.js";
+import {
+  getAanganwadis,
+  getAanganwadiChildren,
+  getChildHealthDetails,
+  addChildHealthRecord,
+  updateVolunteerStatus,
+  getVolunteerDoctors
+} from "../controllers/doctorController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
-import upload from "../utils/multer.js"; // Import Multer middleware
 
 const router = express.Router();
 
-router.patch("/slots/update", authMiddleware(["doctor"]), updateTimeSlots);
-router.get("/appointment", authMiddleware(["doctor"]), getDoctorAppointments);
-router.patch("/:id/appointment-status", authMiddleware(["doctor"]), updateAppointmentStatus);
-router.patch("/prescription", authMiddleware(["doctor"]), upload.single("file"), updatePrescription);
+// Routes for volunteer doctors
+router.get("/aanganwadis", authMiddleware(["doctor"]), getAanganwadis);
+router.get("/aanganwadi/:aanganwadiCode/children", authMiddleware(["doctor"]), getAanganwadiChildren);
+router.get("/child/:childId", authMiddleware(["doctor"]), getChildHealthDetails);
+router.post("/child/:childId/health-record", authMiddleware(["doctor"]), addChildHealthRecord);
+router.put("/volunteer-status", authMiddleware(["doctor"]), updateVolunteerStatus);
+
+// Public route to get volunteer doctors list
+router.get("/volunteers", getVolunteerDoctors);
 
 export default router;

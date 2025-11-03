@@ -3,7 +3,7 @@ import HeaderVideo from '../components/VideoCall/HeaderVideo'
 import VideoCallCard from '../components/VideoCall/VideoCallCard'
 import Footer from '../components/Navbar/Footer'
 import CardsCollection from '../components/DoctorDashboard/CardsCollection'
-import Dashboard from '../components/StudentDashboard/Dashboard'
+import AanganwadiStaffDashboard from '../components/StudentDashboard/AanganwadiStaffDashboard'
 
 const VideoCall = () => {
   return (

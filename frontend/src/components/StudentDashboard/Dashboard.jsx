@@ -12,18 +12,28 @@ import {
 } from "lucide-react";
 import Notibell from "../Noti/Notibell.jsx";
 
-const Dashboard = () => {
-  const [healthRecords, setHealthRecords] = useState([]);
-  const [appointments, setAppointments] = useState([]);
+const AanganwadiStaffDashboard = () => {
+  // State for managing children
+  const [children, setChildren] = useState([]);
+  const [selectedChild, setSelectedChild] = useState(null);
+  const [childHealthRecords, setChildHealthRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [appointmentsError, setAppointmentsError] = useState(null);
-  const [selectedRecord, setSelectedRecord] = useState(null); // State for selected record
-  const [leaveApplications, setLeaveApplications] = useState([]);
-  const [leaveLoading, setLeaveLoading] = useState(true);
-  const [leaveError, setLeaveError] = useState(null);
-  const [selectedLeave, setSelectedLeave] = useState(null);
+  
+  // State for child management forms
+  const [showAddChildForm, setShowAddChildForm] = useState(false);
+  const [showChildDetails, setShowChildDetails] = useState(false);
+  
+  // State for new child form
+  const [newChildData, setNewChildData] = useState({
+    name: '',
+    dateOfBirth: '',
+    gender: 'Male',
+    parentName: '',
+    parentPhone: '',
+    parentEmail: '',
+    address: ''
+  });
 
   // New states for search suggestions
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,74 +41,51 @@ const Dashboard = () => {
   const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
-    const fetchLeaveApplications = async () => {
+    const fetchChildren = async () => {
       try {
-        const response = await api.get("/leave/");
+        const response = await api.get("/child/");
         if (Array.isArray(response.data)) {
-          setLeaveApplications(response.data);
+          setChildren(response.data);
         } else {
           console.error("Unexpected response format:", response.data);
-          setLeaveApplications([]);
+          setChildren([]);
         }
       } catch (err) {
-        console.error("Error fetching leave applications:", err);
-        setLeaveError("Failed to load leave applications.");
-      } finally {
-        setLeaveLoading(false);
-      }
-    };
-
-    fetchLeaveApplications();
-  }, []);
-
-  // Fetch health records
-  useEffect(() => {
-    const fetchHealthRecords = async () => {
-      try {
-        const response = await api.get("/health-record");
-        if (Array.isArray(response.data)) {
-          setHealthRecords(response.data);
-        } else {
-          console.error("Unexpected response format:", response.data);
-          setHealthRecords([]);
-        }
-      } catch (err) {
-        console.error("Error fetching health records:", err);
-        setError("Failed to load health records.");
+        console.error("Error fetching children:", err);
+        setError("Failed to load children.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchHealthRecords();
+    fetchChildren();
   }, []);
 
-  // Fetch student appointments
+  // Fetch selected child's health records
   useEffect(() => {
-    const fetchStudentAppointments = async () => {
-      try {
-        const response = await api.get("/appointment/student");
-        if (Array.isArray(response.data)) {
-          setAppointments(response.data);
-        } else if (response.data && Array.isArray(response.data.appointments)) {
-          setAppointments(response.data.appointments);
-        } else {
-          console.error(
-            "Unexpected appointment response format:",
-            response.data
-          );
-          setAppointments([]);
+    if (selectedChild) {
+      const fetchChildHealthRecords = async () => {
+        try {
+          const response = await api.get(`/health-record/child/${selectedChild._id}`);
+          if (Array.isArray(response.data)) {
+            setChildHealthRecords(response.data);
+          } else {
+            console.error("Unexpected response format:", response.data);
+            setChildHealthRecords([]);
+          }
+        } catch (err) {
+          console.error("Error fetching child health records:", err);
+          setError("Failed to load child health records.");
         }
-      } catch (err) {
-        console.error("Error fetching student appointments:", err);
-        setAppointmentsError("Failed to load student appointments.");
-      } finally {
-        setAppointmentsLoading(false);
-      }
-    };
+      };
 
-    fetchStudentAppointments();
-  }, []);
+      fetchChildHealthRecords();
+    } else {
+      setChildHealthRecords([]);
+    }
+  }, [selectedChild]);
+
+
 
     // Debounced API call for search suggestions
     useEffect(() => {
@@ -300,7 +287,7 @@ const Dashboard = () => {
         <div className="mt-8">
           <h3 className="text-xl font-bold text-green-600 mb-4">AI Features</h3>
           <nav className="space-y-2">
-            {["Leave Concern", "Health Record Concern", "AI Diagnosis"].map(
+            {["Vaccination Concern", "Health Record Concern", "AI Diagnosis"].map(
               (item) => (
                 <Link
                   key={item}
@@ -362,12 +349,12 @@ const Dashboard = () => {
               route: "/recordform",
             },
             {
-              title: "Leave Applications",
-              action: "Apply for Leave",
+              title: "Vaccination Management",
+              action: "Manage Vaccinations",
               color: "bg-green-600",
               icon: FileText,
-              history: "Last leave applied: 5th March 2025 (Medical Leave)",
-              route: "/leave",
+              history: "Last vaccination: COVID-19 - 5th March 2025",
+              route: "/vaccination",
             },
             {
               title: "Appointments",
@@ -407,50 +394,50 @@ const Dashboard = () => {
         {/* Medical Leave Applications Section */}
         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8">
           <h2 className="text-lg font-semibold mb-4 text-gray-700">
-            Medical Leave Applications
+            Vaccination Records
           </h2>
 
-          {leaveLoading ? (
-            <p>Loading leave applications...</p>
-          ) : leaveError ? (
-            <p>{leaveError}</p>
-          ) : leaveApplications.length > 0 ? (
+          {vaccinationApplicationLoading ? (
+            <p>Loading vaccination records...</p>
+          ) : vaccinationApplicationError ? (
+            <p>{vaccinationApplicationError}</p>
+          ) : vaccinationApplications.length > 0 ? (
             <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
               <thead>
                 <tr>
                   <th className="px-4 py-2 border-b text-left">Sno.</th>
                   <th className="px-4 py-2 border-b text-left">Date</th>
-                  <th className="px-4 py-2 border-b text-left">From Date</th>
-                  <th className="px-4 py-2 border-b text-left">To Date</th>
-                  <th className="px-4 py-2 border-b text-left">Diagnosis</th>
+                  <th className="px-4 py-2 border-b text-left">Vaccine Name</th>
+                  <th className="px-4 py-2 border-b text-left">Date Administered</th>
+                  <th className="px-4 py-2 border-b text-left">Healthcare Provider</th>
                   <th className="px-4 py-2 border-b text-left">Status</th>
                   <th className="px-4 py-2 border-b text-left">Actions</th>
                 </tr>
               </thead>
 
               <tbody>
-                {leaveApplications.map((leave, index) => (
-                  <tr key={leave.id}>
+                {vaccinationApplications.map((vaccination, index) => (
+                  <tr key={vaccination.id}>
                     <td className="px-4 py-2 border-b">{index + 1}</td>
-                    <td className="px-4 py-2 border-b">{leave.date}</td>
-                    <td className="px-4 py-2 border-b">{leave.fromDate}</td>
-                    <td className="px-4 py-2 border-b">{leave.toDate}</td>
-                    <td className="px-4 py-2 border-b">{leave.diagnosis}</td>
+                    <td className="px-4 py-2 border-b">{vaccination.date}</td>
+                    <td className="px-4 py-2 border-b">{vaccination.vaccineName}</td>
+                    <td className="px-4 py-2 border-b">{vaccination.dateAdministered}</td>
+                    <td className="px-4 py-2 border-b">{vaccination.healthcareProvider}</td>
 
                     {/* Status Highlighting */}
                     <td className="px-4 py-2 border-b">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          leave.status === "pending"
+                          vaccination.status === "pending"
                             ? "bg-yellow-100 text-yellow-800"
-                            : leave.status === "approved"
+                            : vaccination.status === "verified"
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {leave.status && typeof leave.status === "string"
-                          ? leave.status.charAt(0).toUpperCase() +
-                            leave.status.slice(1)
+                        {vaccination.status && typeof vaccination.status === "string"
+                          ? vaccination.status.charAt(0).toUpperCase() +
+                            vaccination.status.slice(1)
                           : "N/A"}
                       </span>
                     </td>
@@ -458,10 +445,10 @@ const Dashboard = () => {
                     {/* View Status Button */}
                     <td className="px-4 py-2 border-b">
                       <button
-                        onClick={() => setSelectedLeave(leave)}
+                        onClick={() => setSelectedVaccination(vaccination)}
                         className="text-blue-600 hover:underline"
                       >
-                        View Status
+                        View Details
                       </button>
                     </td>
                   </tr>
@@ -469,28 +456,27 @@ const Dashboard = () => {
               </tbody>
             </table>
           ) : (
-            <p>No medical leave applications found.</p>
+            <p>No vaccination records found.</p>
           )}
 
-          {/* Modal for viewing selected leave details */}
-          {selectedLeave && (
+          {/* Modal for viewing selected vaccination details */}
+          {selectedVaccination && (
             <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8">
               <h2 className="text-lg font-semibold mb-4 text-gray-700">
-                Medical leave applications
+                Vaccination Record Details
               </h2>
 
               <p>
-                <strong>Reason:</strong> {selectedLeave.reason}
+                <strong>Vaccine Name:</strong> {selectedVaccination.vaccineName}
               </p>
               <p>
-                <strong>Duration:</strong> {selectedLeave.fromDate} to{" "}
-                {selectedLeave.toDate}
+                <strong>Date Administered:</strong> {selectedVaccination.dateAdministered}
               </p>
               <p>
-                <strong>Diagnosis:</strong> {selectedLeave.diagnosis}
+                <strong>Healthcare Provider:</strong> {selectedVaccination.healthcareProvider}
               </p>
               <p>
-                <strong>Doctor name:</strong> {selectedLeave.doctorName}
+                <strong>Lot Number:</strong> {selectedVaccination.lotNumber}
               </p>
 
               {/* Status with color highlighting */}
@@ -498,21 +484,21 @@ const Dashboard = () => {
                 <strong>Status:</strong>
                 <span
                   className={`ml-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    selectedLeave.status === "pending"
+                    selectedVaccination.status === "pending"
                       ? "bg-yellow-100 text-yellow-800"
-                      : selectedLeave.status === "approved"
+                      : selectedVaccination.status === "verified"
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
                   }`}
                 >
-                  {selectedLeave.status.charAt(0).toUpperCase() +
-                    selectedLeave.status.slice(1)}
+                  {selectedVaccination.status.charAt(0).toUpperCase() +
+                    selectedVaccination.status.slice(1)}
                 </span>
               </p>
 
               {/* Close Button */}
               <button
-                onClick={() => setSelectedLeave(null)}
+                onClick={() => setSelectedVaccination(null)}
                 className="mt-4 bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
               >
                 Close

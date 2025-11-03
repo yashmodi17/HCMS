@@ -19,11 +19,11 @@ client = MongoClient(MONGO_URI)
 db = client["arogya-vault"]
 db = client["arogya-vault"]
 collection = db["healthrecords"]
-collection2=db["medicalleaves"]
+collection2=db["vaccinations"]
 users_collection = db["users"]
 appointments_collection = db["appointments"]
 health_records_collection = db["healthrecords"]
-leave_collection = db["medicalleaves"]
+vaccination_collection = db["vaccinations"]
 
 
 GEMINI_API_KEY = os.getenv("GEMINI_API")
@@ -197,7 +197,7 @@ def disease_prediction():
 
 # ✅ AI-Powered Medical Record Retrieval (No IDs)
 @app.route("/ask_question", methods=["POST"])
-@auth_middleware(["student"])
+@auth_middleware(["aanganwadi_staff"])
 def ask_question():
     try:
         data = request.json
@@ -255,9 +255,9 @@ def ask_question():
     except Exception as e:
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
     
-@app.route("/leaverelated", methods=["POST"])
-@auth_middleware(["student"])
-def leave_related_question():
+@app.route("/vaccinationrelated", methods=["POST"])
+@auth_middleware(["aanganwadi_staff"])
+def vaccination_related_question():
     try:
         data = request.json
         user_question = data.get("question")
@@ -269,16 +269,16 @@ def leave_related_question():
         if not user_question:
             return jsonify({"error": "Question is required"}), 400
 
-        # Fetch leave records - convert string ID to ObjectId
+        # Fetch vaccination records - convert string ID to ObjectId
         records = list(collection2.find({"studentId": ObjectId(student_id)}))
         if not records:
-            return jsonify({"error": "No leave history found for this student"}), 404
+            return jsonify({"error": "No vaccination history found for this student"}), 404
 
         formatted_records = convert_objectid(records)
 
         # Prepare Gemini AI prompt
         gemini_prompt = f"""
-        The following is the student's leave record history:
+        The following is the student's vaccination record history:
         {formatted_records}
         
         Based on this data, answer the following question:

@@ -10,7 +10,7 @@ export default function SpecialistCard() {
     { id: 1, title: "PRESCRIPTION GENERATOR" },
     { id: 2, title: "APPOINTMENT BOOKING" },
     { id: 3, title: "AI BASED DIAGNOSIS" },
-    { id: 4, title: "APPLY FOR LEAVE" },
+    { id: 4, title: "VACCINATION MANAGEMENT" },
     { id: 5, title: "MEDICAL CERTIFICATE" },
     { id: 6, title: "TALK WITH AI" },
   ];

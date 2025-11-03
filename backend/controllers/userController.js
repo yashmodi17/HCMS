@@ -29,21 +29,39 @@ export const signup = async (req, res) => {
       dateOfBirth,
       gender,
       specialization,
-      availableSlots,
+      aanganwadiName,
+      aanganwadiAddress,
+      aanganwadiCode,
+      staffId,
+      assignedAanganwadis,
+      isVolunteer
     } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    const userData = {
       name,
       email,
       password: hashedPassword,
       role,
       phone,
       dateOfBirth,
-      gender,
-      specialization: role === "doctor" ? specialization : undefined, // Only for doctors
-      availableSlots: role === "doctor" ? availableSlots || [] : undefined, // Only for doctors
-    });
+      gender
+    };
+
+    // Add role-specific fields
+    if (role === "doctor") {
+      userData.specialization = specialization;
+      userData.isVolunteer = isVolunteer || false;
+    } else if (role === "aanganwadi_staff") {
+      userData.aanganwadiName = aanganwadiName;
+      userData.aanganwadiAddress = aanganwadiAddress;
+      userData.aanganwadiCode = aanganwadiCode;
+      userData.staffId = staffId;
+    } else if (role === "coordinator") {
+      userData.assignedAanganwadis = assignedAanganwadis || [];
+    }
+
+    const user = await User.create(userData);
 
     generateToken(res, user);
     res.status(201).json({ message: "Signup successful", user });
@@ -132,5 +150,71 @@ export const getDoctorAvailableTimeSlots = async (req, res) => {
   } catch (error) {
     console.error("Error fetching available slots:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get current user details
+export const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Update user profile
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const updateData = req.body;
+    
+    // Remove sensitive fields that shouldn't be updated this way
+    delete updateData.password;
+    delete updateData.role;
+    
+    const user = await User.findByIdAndUpdate(
+      userId, 
+      updateData, 
+      { new: true, runValidators: true }
+    ).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user
+    });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Quick fix to update current user's aanganwadiCode
+export const updateAanganwadiCode = async (req, res) => {
+  try {
+    const { aanganwadiCode } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { aanganwadiCode },
+      { new: true }
+    ).select("-password");
+
+    res.status(200).json({
+      message: "Aanganwadi code updated successfully",
+      user
+    });
+  } catch (error) {
+    console.error("Error updating aanganwadi code:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

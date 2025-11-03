@@ -1,6 +1,6 @@
 import React from 'react'
 import AppointmentNoti from '../components/Noti/AppointmentNoti'
-import LeaveNoti from '../components/Noti/LeaveNoti'
+import VaccinationNoti from '../components/Noti/VaccinationNoti'
 const Noti = () => {
   return (
     <div>
@@ -17,11 +17,13 @@ const Noti = () => {
 
 
     <div className="flex justify-center items-center min-h-screen bg-green-100">
-      <LeaveNoti
-        student="John Doe" 
-        reason="Health Issues" 
-        startDate="April 5, 2025" 
-        endDate="April 10, 2025" 
+      <VaccinationNoti
+        notification={{
+          student: "John Doe",
+          vaccineName: "COVID-19",
+          dateAdministered: "April 5, 2025",
+          status: "Completed"
+        }}
       />
     </div>
     </div>

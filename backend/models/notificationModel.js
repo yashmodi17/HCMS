@@ -6,9 +6,21 @@ const notificationSchema = new mongoose.Schema(
         ref: "User", 
         required: true 
       }, // The user receiving the notification
-      type: { type: String, enum: ["appointment", "leave"], required: true },
+      type: { 
+        type: String, 
+        enum: ["vaccination", "health", "donation", "child_update"], 
+        required: true 
+      },
       message: { type: String, required: true },
       isRead: { type: Boolean, default: false }, // Track if the user has seen it
+      
+      // Additional context for specific notification types
+      relatedData: {
+        childId: { type: mongoose.Schema.Types.ObjectId, ref: "Child" },
+        donationId: { type: mongoose.Schema.Types.ObjectId, ref: "Donation" },
+        vaccinationId: { type: mongoose.Schema.Types.ObjectId, ref: "Vaccination" },
+        healthRecordId: { type: mongoose.Schema.Types.ObjectId, ref: "HealthRecord" }
+      }
     },
     { timestamps: true } // Automatically adds createdAt and updatedAt fields
   );

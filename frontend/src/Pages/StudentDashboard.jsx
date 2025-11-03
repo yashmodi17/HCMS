@@ -1,6 +1,6 @@
 import React from 'react'
 import Navbar from '../components/Navbar/Navbar'
-import Dashboard from '../components/StudentDashboard/Dashboard'
+import AanganwadiStaffDashboard from '../components/StudentDashboard/AanganwadiStaffDashboard'
 
 const StudentDashboard = () => {
   return (
@@ -9,7 +9,7 @@ const StudentDashboard = () => {
 
 
         <Navbar/>
-        <Dashboard/>
+        <AanganwadiStaffDashboard/>
     </div>
   )
 }

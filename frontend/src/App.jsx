@@ -14,11 +14,11 @@ import Contact from "./Pages/Contact";
 import Telemedicine from "./Pages/telemedicine";
 import VideoCall from "./Pages/VideoCall";
 import DoctorsDashboard from "./Pages/DoctorsDashboard";
-import Dashboard from "./components/StudentDashboard/Dashboard";
+import AanganwadiStaffDashboard from "./components/StudentDashboard/AanganwadiStaffDashboard";
 import SignUp from "./components/Login/SignUp";
 import Certificates from "./components/medicalcertificate/Certificates";
 import Login from "./components/Login/Login";
-import MedicalLeave from "./Pages/MedicalLeave";
+import VaccinationManagement from "./Pages/VaccinationManagement";
 import ErrorBoundary from "./context/ErrorBoundary";
 import MedicalAI from "./components/aifeatures/medicalai";
 import MedicalCertificateGenerator from "./components/aifeatures/MedicalCertificateGenerator";
@@ -27,7 +27,7 @@ import Certificate from "./Pages/Certificate";
 import AdminDashboard from "./components/StudentDashboard/Admindashboard";
 import DocDash from "./components/StudentDashboard/DocDash";
 import Predictionchat from "./components/aitanissa/Predictionchat";
-import Leavechat from "./components/aitanissa/Leavechat";
+import Vaccinationchat from "./components/aitanissa/Leavechat";
 import HealthRecordForm from "./components/Healthrecordform/HealthRecordForm";
 import DoctorInsightsChat from "./components/aitanissa/DoctorInsightsChat";
 import DoctorTimeSlotSelector from "./components/Booking/DoctorTimeSlotSelector";
@@ -38,6 +38,7 @@ import Payments from "./components/Payments/payment";
 import NotiScreen from "./components/Noti/NotiScreen";
 import Voice from "./components/Voice Assistant/Voice";
 import Notibell from "./components/Noti/Notibell";
+import ChildProfileDashboard from "./components/ChildProfile/ChildProfileDashboard";
 const Home = () => <div className="text-center mt-10">🏠 Welcome to Home</div>;
 const AIBot = () => <div className="text-center mt-10">🤖 AI Bot Page</div>;
 
@@ -75,7 +76,7 @@ const App = () => {
         <Route path="/" element={<HomePage/>}/>
         <Route path="/ai-bot" element={<Aibot />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/profile" element={<Dashboard />} />
+        <Route path="/profile" element={<AanganwadiStaffDashboard />} />
         <Route path="/appointment" element={<Booking />} />
         <Route path="/video-call" element={<VideoCall />} />
         <Route path="/signup" element={<SignUp />} />
@@ -84,13 +85,13 @@ const App = () => {
         <Route path="/telemedicine" element={<Telemedicine />} />
         {/* <Route path="/video-call" element={<VideoCall />} /> */}
         <Route path="/doctor" element={<DocDash />} />
-        <Route path="/leave" element={<MedicalLeave />} />
+        <Route path="/vaccination" element={<VaccinationManagement />} />
         <Route path="/certificate" element={<Certificate />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<AanganwadiStaffDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/health-record-concern" element={<Healthchat />} />
         <Route path="/ai-diagnosis" element={<Predictionchat />} />
-        <Route path="/leave-concern" element={<Leavechat />} />
+        <Route path="/vaccination-concern" element={<Vaccinationchat />} />
         <Route path="/recordform" element={<HealthRecordForm />} />
         <Route path="/ai-assistant" element={<DoctorInsightsChat />} />
         <Route path="/slots" element={<DoctorTimeSlotSelector />} />
@@ -100,6 +101,7 @@ const App = () => {
         <Route path="/notiscreen" element={<NotiScreen />} />
         <Route path="/voice" element={<Voice/>} />
         <Route path="/bell" element={<Notibell/>} />
+        <Route path="/child/:childId" element={<ChildProfileDashboard />} />
 
        
       </Routes>

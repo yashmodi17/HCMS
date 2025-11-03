@@ -5,8 +5,8 @@ import { Bell, Settings, Search, Eye, Calendar, FileText, User, UserPlus, Users,
 import {api} from '../../axios.config';
 import Notibell from '../Noti/Notibell';
 const AdminDashboard = () => {
-  // Sample data for student leave applications
-  const [leaveApplications, setLeaveApplications] = useState([]);
+  // Sample data for student vaccination records
+  const [vaccinationRecords, setVaccinationRecords] = useState([]);
   
   const [selectedRecord, setSelectedRecord] = useState(null);
 
@@ -16,7 +16,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchHealthRecords = async () => {
       try {
-        const response = await api.get("/medical-leaves/healthrecord"); // Replace with your API endpoint
+        const response = await api.get("/health-record/admin/all"); // Updated endpoint
         console.log("API Response:", response.data);
         
         const formattedData = response.data.map(record => ({
@@ -65,36 +65,36 @@ const AdminDashboard = () => {
   ];
 
   // State for active tab
-  const [activeTab, setActiveTab] = useState('leave');
+  const [activeTab, setActiveTab] = useState('vaccination');
 
   useEffect(() => {
-    const fetchLeaveApplications = async () => {
+    const fetchVaccinationRecords = async () => {
       try {
-        const response = await api.get("/medical-leaves");
-        setLeaveApplications(response.data);
+        const response = await api.get("/vaccinations");
+        setVaccinationRecords(response.data);
       } catch (error) {
-        console.error("Error fetching leave applications:", error);
+        console.error("Error fetching vaccination records:", error);
       }
     };
-    fetchLeaveApplications();
+    fetchVaccinationRecords();
   }, []);
 
-  const updateLeaveStatus = async (id, status) => {
+  const updateVaccinationStatus = async (id, status) => {
     try {
-      await api.patch(`/medical-leaves/${id}/status`, { status });
-      // Refresh the leave applications after updating
-      const response = await api.get("/medical-leaves");
-      setLeaveApplications(response.data);
+      await api.patch(`/vaccinations/${id}/status`, { status });
+      // Refresh the vaccination records after updating
+      const response = await api.get("/vaccinations");
+      setVaccinationRecords(response.data);
     } catch (error) {
-      console.error("Error updating leave status:", error);
+      console.error("Error updating vaccination status:", error);
     }
   };
-  const [selectedLeave, setSelectedLeave] = useState(null);
+  const [selectedVaccination, setSelectedVaccination] = useState(null);
 
-  const viewLeaveDetails = async (id) => {
+  const viewVaccinationDetails = async (id) => {
     try {
-      const response = await api.get(`/medical-leaves/${id}/details`);
-      setSelectedLeave({
+      const response = await api.get(`/vaccinations/${id}/details`);
+      setSelectedVaccination({
         ...response.data,
         docUrls: response.data.supportingDocuments 
           ? response.data.supportingDocuments.map(att => ({
@@ -104,9 +104,9 @@ const AdminDashboard = () => {
           : []
       });
     } catch (error) {
-      console.error("Error fetching leave details:", error);
+      console.error("Error fetching vaccination details:", error);
       // Display an error message to the user
-      alert("An error occurred while fetching leave details. Please try again later.");
+      alert("An error occurred while fetching vaccination details. Please try again later.");
     }
   };
   
@@ -125,7 +125,7 @@ const AdminDashboard = () => {
           </Link>
           {[
             { name: 'Students', icon: Users },
-            { name: 'Leave Applications', icon: FileText },
+            { name: 'Vaccination Management', icon: FileText },
             { name: 'Health Records', icon: Activity },
             { name: 'Doctors', icon: User },
            
@@ -163,7 +163,7 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-4 gap-6 mb-8">
           {[
             { title: 'Total Students', value: '2,450', color: 'bg-blue-600', icon: Users },
-            { title: 'Pending Leaves', value: '24', color: 'bg-yellow-500', icon: FileText },
+            { title: 'Pending Vaccinations', value: '24', color: 'bg-yellow-500', icon: FileText },
             { title: 'Open Health Cases', value: '18', color: 'bg-red-500', icon: AlertCircle },
             { title: 'Available Doctors', value: '12', color: 'bg-green-600', icon: User }
           ].map((item, index) => (
@@ -184,10 +184,10 @@ const AdminDashboard = () => {
         <div className="mb-6 border-b">
           <div className="flex space-x-8">
             <button 
-              onClick={() => setActiveTab('leave')} 
-              className={`pb-4 px-1 ${activeTab === 'leave' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('vaccination')} 
+              className={`pb-4 px-1 ${activeTab === 'vaccination' ? 'border-b-2 border-blue-600 text-blue-600 font-semibold' : 'text-gray-500'}`}
             >
-              Leave Applications
+              Vaccination Records
             </button>
             <button 
               onClick={() => setActiveTab('health')} 
@@ -212,11 +212,11 @@ const AdminDashboard = () => {
 
         {/* Tab Content */}
         <div className="bg-white rounded-xl border p-6">
-          {/* Leave Applications Tab */}
-          {activeTab === 'leave' && (
+          {/* Vaccination Records Tab */}
+          {activeTab === 'vaccination' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold">Student Leave Applications</h2>
+                <h2 className="text-xl font-semibold">Student Vaccination Records</h2>
                 <div className="flex space-x-2">
                   <select className="border rounded-lg px-3 py-2">
                     <option>All Status</option>
@@ -225,7 +225,7 @@ const AdminDashboard = () => {
                     <option>Rejected</option>
                   </select>
                   <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center">
-                    <UserPlus className="w-4 h-4 mr-2" /> New Application
+                    <UserPlus className="w-4 h-4 mr-2" /> New Record
                   </button>
                 </div>
               </div>
@@ -237,36 +237,38 @@ const AdminDashboard = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Health issue</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vaccine Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Administered</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-  {leaveApplications.map((app,index) => (
-    <tr key={app.id} className="hover:bg-gray-50">
+  {vaccinationRecords.map((record,index) => (
+    <tr key={record.id} className="hover:bg-gray-50">
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{index+1}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.studentName}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.studentId}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.gender}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.duration}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.diagnosis}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.studentName}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.studentId}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.gender}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.vaccineName}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.dateAdministered}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{record.facilityName}</td>
       <td className="px-6 py-4 whitespace-nowrap">
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-          app.status === 'approved' ? 'bg-green-100 text-green-800' : 
-          app.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+          record.status === 'completed' ? 'bg-green-100 text-green-800' : 
+          record.status === 'overdue' ? 'bg-red-100 text-red-800' : 
           'bg-yellow-100 text-yellow-800'
         }`}>
-          {app.status}
+          {record.status}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        <button onClick={() => viewLeaveDetails(app.id)} className="text-blue-600 hover:text-blue-900 mr-3">View</button>
-        {app.status === 'pending' && (
+        <button onClick={() => viewVaccinationDetails(record.id)} className="text-blue-600 hover:text-blue-900 mr-3">View</button>
+        {record.status === 'pending' && (
           <>
-            <button onClick={() => updateLeaveStatus(app.id, 'approved')} className="text-green-600 hover:text-green-900 mr-3">Approve</button>
-            <button onClick={() => updateLeaveStatus(app.id, 'rejected')} className="text-red-600 hover:text-red-900">Reject</button>
+            <button onClick={() => updateVaccinationStatus(record.id, 'completed')} className="text-green-600 hover:text-green-900 mr-3">Verify</button>
+            <button onClick={() => updateVaccinationStatus(record.id, 'overdue')} className="text-red-600 hover:text-red-900">Mark Overdue</button>
           </>
         )}
       </td>
@@ -275,27 +277,28 @@ const AdminDashboard = () => {
   </tbody>
 
                 </table>
-                {selectedLeave && (
+                {selectedVaccination && (
   <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
     <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-      <h3 className="text-lg font-medium leading-6 text-gray-900 mb-2">Leave Details</h3>
-      <p><strong>Student:</strong> {selectedLeave.studentName}</p>
-      <p><strong>StudentId:</strong> {selectedLeave.studentId}</p>
-      <p><strong>gender:</strong> {selectedLeave.gender}</p>
-      <p><strong>Duration:</strong> {selectedLeave.duration}</p>
-      <p><strong>Reason:</strong> {selectedLeave.reason}</p>
-      <p><strong>Status:</strong> {selectedLeave.status}</p>
-      <p><strong>Email:</strong> {selectedLeave.email}</p>
-      <p><strong>Phone:</strong> {selectedLeave.phone}</p>
-      <p><strong>DOB:</strong> {selectedLeave.dateOfBirth}</p>
-      <p><strong>health issue:</strong> {selectedLeave.diagnosis}</p>
-      <p><strong>Doctor:</strong> {selectedLeave.doctorName}</p>
-      <p><strong>treatment:</strong> {selectedLeave.treatment}</p>
-      <p><strong>prescription:</strong> {selectedLeave.prescription}</p>
-      {selectedLeave.docUrls && selectedLeave.docUrls.length > 0 && (
+      <h3 className="text-lg font-medium leading-6 text-gray-900 mb-2">Vaccination Details</h3>
+      <p><strong>Student:</strong> {selectedVaccination.studentName}</p>
+      <p><strong>StudentId:</strong> {selectedVaccination.studentId}</p>
+      <p><strong>Gender:</strong> {selectedVaccination.gender}</p>
+      <p><strong>Vaccine Name:</strong> {selectedVaccination.vaccineName}</p>
+      <p><strong>Date Administered:</strong> {selectedVaccination.dateAdministered}</p>
+      <p><strong>Dosage Number:</strong> {selectedVaccination.dosageNumber}</p>
+      <p><strong>Administered By:</strong> {selectedVaccination.administeredBy}</p>
+      <p><strong>Facility:</strong> {selectedVaccination.facilityName}</p>
+      <p><strong>Batch Number:</strong> {selectedVaccination.batchNumber}</p>
+      <p><strong>Status:</strong> {selectedVaccination.status}</p>
+      <p><strong>Email:</strong> {selectedVaccination.email}</p>
+      <p><strong>Phone:</strong> {selectedVaccination.phone}</p>
+      <p><strong>DOB:</strong> {selectedVaccination.dateOfBirth}</p>
+      <p><strong>Notes:</strong> {selectedVaccination.notes}</p>
+      {selectedVaccination.docUrls && selectedVaccination.docUrls.length > 0 && (
   <div className="mt-4">
     <h4 className="font-semibold">Supporting documents:</h4>
-    {selectedLeave.docUrls.map((attachment, index) => (
+    {selectedVaccination.docUrls.map((attachment, index) => (
       <div key={index} className="mt-2">
         {attachment.format === 'pdf' ? (
           <iframe
@@ -328,7 +331,7 @@ const AdminDashboard = () => {
   
       
       <button
-        onClick={() => setSelectedLeave(null)}
+        onClick={() => setSelectedVaccination(null)}
         className="mt-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
       >
         Close
