@@ -13,8 +13,30 @@ export default function SignUp() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("Male");
   const [extra, setExtra] = useState("");
+  const [isVolunteer, setIsVolunteer] = useState(false);
+  const [aanganwadiCode, setAanganwadiCode] = useState("");
+  const [aanganwadiCodeStatus, setAanganwadiCodeStatus] = useState(""); // "", "validating", "valid", "invalid"
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // Validate aanganwadi code
+  const validateAanganwadiCode = async (code) => {
+    if (!code || code.length === 0) {
+      setAanganwadiCodeStatus("");
+      return;
+    }
+    
+    setAanganwadiCodeStatus("validating");
+    try {
+      const response = await api.get(`aanganwadi/verify/${code.toUpperCase()}`);
+      if (response.status === 200) {
+        setAanganwadiCodeStatus("valid");
+      }
+    } catch (error) {
+      setAanganwadiCodeStatus("invalid");
+      console.log("Aanganwadi code validation error:", error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,9 +47,17 @@ export default function SignUp() {
     // Add role-specific fields
     if (role === "doctor") {
       formData.specialization = extra;
+      formData.isVolunteer = isVolunteer;
     } else if (role === "aanganwadi_staff") {
-      // For aanganwadi staff, we might want to collect aanganwadi details
-      // For now, we'll handle this in a separate step or admin assignment
+      if (!aanganwadiCode) {
+        setError("Aanganwadi code is required for staff registration");
+        return;
+      }
+      if (aanganwadiCodeStatus !== "valid") {
+        setError("Please enter a valid Aanganwadi code");
+        return;
+      }
+      formData.aanganwadiCode = aanganwadiCode;
     } else if (role === "coordinator") {
       // Coordinators will be assigned aanganwadis later by admin
     }
@@ -144,9 +174,64 @@ export default function SignUp() {
                 required
               />
             )}
+            {role === "doctor" && (
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={isVolunteer}
+                  onChange={(e) => setIsVolunteer(e.target.checked)}
+                  className="form-checkbox text-green-500"
+                />
+                <span className="text-gray-700">I want to volunteer for Aanganwadi health checkups</span>
+              </label>
+            )}
             {role === "aanganwadi_staff" && (
-              <div className="text-sm text-gray-600 p-3 bg-blue-50 rounded-lg">
-                <strong>Note:</strong> Your aanganwadi details will be assigned by a coordinator after registration.
+              <div className="space-y-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Aanganwadi Code (provided by coordinator)"
+                    value={aanganwadiCode}
+                    onChange={(e) => {
+                      const code = e.target.value.toUpperCase();
+                      setAanganwadiCode(code);
+                      validateAanganwadiCode(code);
+                    }}
+                    className={`w-full p-4 border rounded-lg focus:ring focus:ring-green-300 ${
+                      aanganwadiCodeStatus === "valid" ? "border-green-500" : 
+                      aanganwadiCodeStatus === "invalid" ? "border-red-500" : "border-gray-300"
+                    }`}
+                    required
+                  />
+                  {aanganwadiCodeStatus === "validating" && (
+                    <div className="absolute right-3 top-4 text-blue-500">
+                      <span className="text-sm">Validating...</span>
+                    </div>
+                  )}
+                  {aanganwadiCodeStatus === "valid" && (
+                    <div className="absolute right-3 top-4 text-green-500">
+                      ✓
+                    </div>
+                  )}
+                  {aanganwadiCodeStatus === "invalid" && (
+                    <div className="absolute right-3 top-4 text-red-500">
+                      ✗
+                    </div>
+                  )}
+                </div>
+                {aanganwadiCodeStatus === "invalid" && (
+                  <div className="text-red-500 text-sm">
+                    Invalid Aanganwadi code. Please verify with your coordinator.
+                  </div>
+                )}
+                {aanganwadiCodeStatus === "valid" && (
+                  <div className="text-green-600 text-sm">
+                    ✓ Valid Aanganwadi code
+                  </div>
+                )}
+                <div className="text-sm text-gray-600 p-3 bg-blue-50 rounded-lg">
+                  <strong>Note:</strong> Enter the Aanganwadi code provided by your coordinator. Your Staff ID will be automatically generated.
+                </div>
               </div>
             )}
             {role === "coordinator" && (

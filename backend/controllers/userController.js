@@ -1,4 +1,4 @@
-import { User } from "../models/userModel.js";
+import { User, Aanganwadi } from "../models/index.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
@@ -53,10 +53,24 @@ export const signup = async (req, res) => {
       userData.specialization = specialization;
       userData.isVolunteer = isVolunteer || false;
     } else if (role === "aanganwadi_staff") {
-      userData.aanganwadiName = aanganwadiName;
-      userData.aanganwadiAddress = aanganwadiAddress;
-      userData.aanganwadiCode = aanganwadiCode;
-      userData.staffId = staffId;
+      // Validate provided aanganwadi code exists
+      if (!aanganwadiCode) {
+        return res.status(400).json({ message: 'Aanganwadi code is required for staff signup' });
+      }
+      const aanganwadi = await Aanganwadi.findOne({ code: aanganwadiCode.toUpperCase() });
+      if (!aanganwadi) {
+        return res.status(400).json({ message: 'Invalid Aanganwadi code. Please verify with your coordinator.' });
+      }
+      userData.aanganwadiName = aanganwadi.name;
+      userData.aanganwadiAddress = aanganwadi.address;
+      userData.aanganwadiCode = aanganwadi.code;
+      
+      // Auto-generate Staff ID
+      const staffCount = await User.countDocuments({ 
+        role: 'aanganwadi_staff', 
+        aanganwadiCode: aanganwadi.code 
+      });
+      userData.staffId = `${aanganwadi.code}-STAFF-${String(staffCount + 1).padStart(3, '0')}`;
     } else if (role === "coordinator") {
       userData.assignedAanganwadis = assignedAanganwadis || [];
     }
@@ -203,16 +217,24 @@ export const updateAanganwadiCode = async (req, res) => {
     const { aanganwadiCode } = req.body;
     const userId = req.user.id;
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { aanganwadiCode },
-      { new: true }
-    ).select("-password");
+    if (!aanganwadiCode) {
+      return res.status(400).json({ message: 'Aanganwadi code is required' });
+    }
 
-    res.status(200).json({
-      message: "Aanganwadi code updated successfully",
-      user
-    });
+    const aanganwadi = await Aanganwadi.findOne({ code: aanganwadiCode.toUpperCase() });
+    if (!aanganwadi) {
+      return res.status(400).json({ message: 'Invalid Aanganwadi code' });
+    }
+
+    const update = {
+      aanganwadiCode: aanganwadi.code,
+      aanganwadiName: aanganwadi.name,
+      aanganwadiAddress: aanganwadi.address
+    };
+
+    const user = await User.findByIdAndUpdate(userId, update, { new: true }).select("-password");
+
+    res.status(200).json({ message: "Aanganwadi code updated successfully", user });
   } catch (error) {
     console.error("Error updating aanganwadi code:", error);
     res.status(500).json({ message: "Server error", error: error.message });

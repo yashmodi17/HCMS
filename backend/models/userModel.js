@@ -26,7 +26,13 @@ const UserSchema = new mongoose.Schema(
     isVolunteer: { type: Boolean, default: false }, // Whether doctor volunteers for aanganwadis
     
     // Coordinators
-    assignedAanganwadis: [{ type: String }], // List of aanganwadi codes they coordinate
+    assignedAanganwadis: [{ type: String }], // List of aanganwadi codes they coordinate (max 1)
+    aanganwadiSetup: {
+      name: { type: String },
+      address: { type: String }, 
+      code: { type: String },
+      staffCapacity: { type: Number, default: 10 }
+    }, // Coordinator's aanganwadi setup info
   },
   { timestamps: true }
 );

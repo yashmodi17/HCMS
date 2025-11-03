@@ -35,6 +35,8 @@ export default function Login() {
         } else if (role === "aanganwadi_staff") {
           navigate("/dashboard");
         } else if (role === "coordinator") {
+          navigate("/coordinator-dashboard");
+        } else if (role === "admin") {
           navigate("/admin");
         }
       }

@@ -4,8 +4,16 @@ import { Child, HealthRecord, Vaccination, User } from '../models/index.js';
 export const getChildrenByStaff = async (req, res) => {
   try {
     const staffId = req.user.id;
+    
+    // First get the staff member to find their aanganwadiCode
+    const staffMember = await User.findById(staffId);
+    if (!staffMember || !staffMember.aanganwadiCode) {
+      return res.status(400).json({ message: 'Staff member not associated with any aanganwadi' });
+    }
+    
+    // Get all children from the same aanganwadi, not just ones created by this staff
     const children = await Child.find({ 
-      aanganwadiStaff: staffId, 
+      aanganwadiCode: staffMember.aanganwadiCode, 
       isActive: true 
     })
     .populate('healthRecords')

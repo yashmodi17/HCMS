@@ -1,6 +1,6 @@
 import React from "react";
 
-import { createContext, useState } from "react";
+import { createContext, useState, useContext } from "react";
 import PropTypes from "prop-types";
 
 const UserContext = createContext();
@@ -30,4 +30,13 @@ UserProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-export { UserContext, UserProvider };
+// Custom hook for using the UserContext
+const useAuth = () => {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('useAuth must be used within a UserProvider');
+  }
+  return context;
+};
+
+export { UserContext, UserProvider, useAuth };

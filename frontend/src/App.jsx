@@ -39,6 +39,7 @@ import NotiScreen from "./components/Noti/NotiScreen";
 import Voice from "./components/Voice Assistant/Voice";
 import Notibell from "./components/Noti/Notibell";
 import ChildProfileDashboard from "./components/ChildProfile/ChildProfileDashboard";
+import CoordinatorDashboard from "./Pages/CoordinatorDashboard";
 const Home = () => <div className="text-center mt-10">🏠 Welcome to Home</div>;
 const AIBot = () => <div className="text-center mt-10">🤖 AI Bot Page</div>;
 
@@ -88,6 +89,7 @@ const App = () => {
         <Route path="/vaccination" element={<VaccinationManagement />} />
         <Route path="/certificate" element={<Certificate />} />
         <Route path="/dashboard" element={<AanganwadiStaffDashboard />} />
+        <Route path="/coordinator-dashboard" element={<CoordinatorDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/health-record-concern" element={<Healthchat />} />
         <Route path="/ai-diagnosis" element={<Predictionchat />} />
