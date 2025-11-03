@@ -19,9 +19,9 @@ router.post(
   upload.array('supportingDocuments', 5),
   addVaccinationRecord
 );
-router.get("/child/:childId", authMiddleware(["aanganwadi_staff", "coordinator"]), getVaccinationRecords);
-router.get("/child/:childId/status", authMiddleware(["aanganwadi_staff", "coordinator"]), getVaccinationStatus);
-router.get("/mandatory", authMiddleware(["aanganwadi_staff", "coordinator"]), getMandatoryVaccinations);
+router.get("/child/:childId", authMiddleware(["aanganwadi_staff", "coordinator", "doctor"]), getVaccinationRecords);
+router.get("/child/:childId/status", authMiddleware(["aanganwadi_staff", "coordinator", "doctor"]), getVaccinationStatus);
+router.get("/mandatory", authMiddleware(["aanganwadi_staff", "coordinator", "doctor"]), getMandatoryVaccinations);
 
 // Coordinator routes
 router.get("/coordinator/all", authMiddleware(["coordinator"]), getAllVaccinationRecords);

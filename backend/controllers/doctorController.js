@@ -7,54 +7,150 @@ import {
 } from "../models/index.js";
 
 // Get all aanganwadis for volunteer doctors to see
-export const getAanganwadis = async (req, res) => {
+export const getAllAanganwadis = async (req, res) => {
   try {
-    const aanganwadis = await User.aggregate([
-      { $match: { role: "aanganwadi_staff" } },
-      {
-        $group: {
-          _id: "$aanganwadiCode",
-          aanganwadiName: { $first: "$aanganwadiName" },
-          aanganwadiAddress: { $first: "$aanganwadiAddress" },
-          staffCount: { $sum: 1 },
-          staffMembers: {
-            $push: {
-              id: "$_id",
-              name: "$name",
-              email: "$email",
-              phone: "$phone"
-            }
-          }
-        }
-      },
-      { $sort: { aanganwadiName: 1 } }
-    ]);
+    const { city } = req.query;
+    
+    // Get all Aanganwadis from the Aanganwadi collection
+    const { Aanganwadi } = await import('../models/index.js');
+    
+    let query = {};
+    if (city) {
+      query.address = { $regex: city, $options: 'i' };
+    }
+    
+    const aanganwadis = await Aanganwadi.find(query)
+      .populate('coordinatorId', 'name email phone')
+      .sort({ name: 1 });
 
-    // Get child count for each aanganwadi
-    const aanganwadiCodes = aanganwadis.map(a => a._id);
-    const childCounts = await Child.aggregate([
-      { $match: { aanganwadiCode: { $in: aanganwadiCodes }, isActive: true } },
-      {
-        $group: {
-          _id: "$aanganwadiCode",
-          childCount: { $sum: 1 }
-        }
-      }
-    ]);
+    // Get child count and staff count for each aanganwadi
+    const aanganwadiData = await Promise.all(
+      aanganwadis.map(async (aanganwadi) => {
+        const [childCount, staffCount] = await Promise.all([
+          Child.countDocuments({ aanganwadiCode: aanganwadi.code, isActive: true }),
+          User.countDocuments({ aanganwadiCode: aanganwadi.code, role: 'aanganwadi_staff' })
+        ]);
 
-    // Combine the data
-    const aanganwadiData = aanganwadis.map(aanganwadi => {
-      const childData = childCounts.find(c => c._id === aanganwadi._id);
-      return {
-        ...aanganwadi,
-        childCount: childData ? childData.childCount : 0
-      };
-    });
+        return {
+          _id: aanganwadi._id,
+          name: aanganwadi.name,
+          address: aanganwadi.address,
+          code: aanganwadi.code,
+          staffCapacity: aanganwadi.staffCapacity,
+          coordinator: aanganwadi.coordinatorId,
+          childCount,
+          staffCount,
+          createdAt: aanganwadi.createdAt
+        };
+      })
+    );
 
     res.status(200).json(aanganwadiData);
   } catch (error) {
-    console.error('Error fetching aanganwadis:', error);
+    console.error('Error fetching all aanganwadis:', error);
     res.status(500).json({ message: 'Failed to fetch aanganwadis' });
+  }
+};
+
+// Volunteer for an aanganwadi
+export const volunteerForAanganwadi = async (req, res) => {
+  try {
+    const { aanganwadiCode } = req.body;
+    const doctorId = req.user.id;
+
+    // Check if aanganwadi exists
+    const { Aanganwadi } = await import('../models/index.js');
+    const aanganwadi = await Aanganwadi.findOne({ code: aanganwadiCode });
+    if (!aanganwadi) {
+      return res.status(404).json({ message: 'Aanganwadi not found' });
+    }
+
+    // Check if doctor is already volunteering for this aanganwadi
+    const doctor = await User.findById(doctorId);
+    if (doctor.volunteerAanganwadis && doctor.volunteerAanganwadis.includes(aanganwadiCode)) {
+      return res.status(400).json({ message: 'Already volunteering for this Aanganwadi' });
+    }
+
+    // Add aanganwadi to doctor's volunteer list
+    await User.findByIdAndUpdate(doctorId, {
+      $addToSet: { volunteerAanganwadis: aanganwadiCode },
+      isVolunteer: true
+    });
+
+    // Notify coordinator
+    const notification = new Notification({
+      recipientId: aanganwadi.coordinatorId,
+      type: 'volunteer',
+      message: `Dr. ${doctor.name} has volunteered for ${aanganwadi.name}`,
+      relatedData: {
+        doctorId: doctorId,
+        aanganwadiId: aanganwadi._id
+      }
+    });
+    await notification.save();
+
+    res.status(200).json({ message: 'Successfully volunteered for Aanganwadi' });
+  } catch (error) {
+    console.error('Error volunteering for aanganwadi:', error);
+    res.status(500).json({ message: 'Failed to volunteer for aanganwadi' });
+  }
+};
+
+// Stop volunteering for an aanganwadi
+export const stopVolunteering = async (req, res) => {
+  try {
+    const { aanganwadiCode } = req.body;
+    const doctorId = req.user.id;
+
+    await User.findByIdAndUpdate(doctorId, {
+      $pull: { volunteerAanganwadis: aanganwadiCode }
+    });
+
+    res.status(200).json({ message: 'Stopped volunteering for Aanganwadi' });
+  } catch (error) {
+    console.error('Error stopping volunteer:', error);
+    res.status(500).json({ message: 'Failed to stop volunteering' });
+  }
+};
+
+// Get doctor's dashboard data
+export const getDoctorDashboard = async (req, res) => {
+  try {
+    const doctorId = req.user.id;
+    const doctor = await User.findById(doctorId).select('-password');
+    
+    // Get volunteer aanganwadis with details
+    const volunteerAanganwadis = [];
+    if (doctor.volunteerAanganwadis && doctor.volunteerAanganwadis.length > 0) {
+      const { Aanganwadi } = await import('../models/index.js');
+      
+      for (const code of doctor.volunteerAanganwadis) {
+        const aanganwadi = await Aanganwadi.findOne({ code })
+          .populate('coordinatorId', 'name email phone');
+        
+        if (aanganwadi) {
+          const [childCount, staffCount] = await Promise.all([
+            Child.countDocuments({ aanganwadiCode: code, isActive: true }),
+            User.countDocuments({ aanganwadiCode: code, role: 'aanganwadi_staff' })
+          ]);
+
+          volunteerAanganwadis.push({
+            ...aanganwadi.toObject(),
+            childCount,
+            staffCount
+          });
+        }
+      }
+    }
+
+    res.status(200).json({
+      doctor,
+      volunteerAanganwadis,
+      totalVolunteerAanganwadis: volunteerAanganwadis.length
+    });
+  } catch (error) {
+    console.error('Error fetching doctor dashboard:', error);
+    res.status(500).json({ message: 'Failed to fetch dashboard data' });
   }
 };
 

@@ -25,7 +25,6 @@ import MedicalCertificateGenerator from "./components/aifeatures/MedicalCertific
 import VerificationScreen from "./components/aifeatures/VerificationScreen";
 import Certificate from "./Pages/Certificate";
 import AdminDashboard from "./components/StudentDashboard/Admindashboard";
-import DocDash from "./components/StudentDashboard/DocDash";
 import Predictionchat from "./components/aitanissa/Predictionchat";
 import Vaccinationchat from "./components/aitanissa/Leavechat";
 import HealthRecordForm from "./components/Healthrecordform/HealthRecordForm";
@@ -85,7 +84,7 @@ const App = () => {
         <Route path="/patient" element={<PatientForm />} />
         <Route path="/telemedicine" element={<Telemedicine />} />
         {/* <Route path="/video-call" element={<VideoCall />} /> */}
-        <Route path="/doctor" element={<DocDash />} />
+        <Route path="/doctor" element={<DoctorsDashboard />} />
         <Route path="/vaccination" element={<VaccinationManagement />} />
         <Route path="/certificate" element={<Certificate />} />
         <Route path="/dashboard" element={<AanganwadiStaffDashboard />} />

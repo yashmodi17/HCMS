@@ -24,6 +24,7 @@ const UserSchema = new mongoose.Schema(
     // Doctors
     specialization: { type: String }, // Only for doctors
     isVolunteer: { type: Boolean, default: false }, // Whether doctor volunteers for aanganwadis
+    volunteerAanganwadis: [{ type: String }], // List of aanganwadi codes doctor volunteers for
     
     // Coordinators
     assignedAanganwadis: [{ type: String }], // List of aanganwadi codes they coordinate (max 1)
