@@ -1,15 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const MedicalServices = () => {
-  const navigate = useNavigate();
-  
   const services = [
-    { title: 'Child Health Records', buttonText: 'Child Health Records', route: '/appointment' },
-    { title: 'Vaccination Tracking', buttonText: 'Vaccination Tracking', route: '/telemedicine' },
-    { title: 'Doctor Consultation', buttonText: 'Doctor Consultation', route: '/video-call' },
-    { title: 'Growth Monitoring', buttonText: 'Growth Monitoring', route: '/medical-centers' },
-    { title: 'AI Health Insights', buttonText: 'AI Health Insights', route: '/ai-diagnosis' },
+    { title: 'Child Health Records', buttonText: 'Child Health Records' },
+    { title: 'Vaccination Tracking', buttonText: 'Vaccination Tracking' },
+    { title: 'Doctor Consultation', buttonText: 'Doctor Consultation' },
+    { title: 'Growth Monitoring', buttonText: 'Growth Monitoring' },
+    { title: 'AI Health Insights', buttonText: 'AI Health Insights' },
   ];
   
   return (
@@ -28,12 +25,9 @@ const MedicalServices = () => {
               <h3 className="mt-2 sm:mt-3 text-xs sm:text-sm md:text-base font-medium text-gray-900 text-center">
                 {service.title}
               </h3>
-              <button
-                onClick={() => navigate(service.route)}
-                className="mt-3 sm:mt-4 bg-green-300 text-green-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-green-400 w-full"
-              >
+              <div className="mt-3 sm:mt-4 bg-green-300 text-green-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold w-full text-center cursor-default">
                 {service.buttonText}
-              </button>
+              </div>
             </div>
           ))}
         </div>

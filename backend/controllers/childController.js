@@ -68,8 +68,12 @@ export const getChildDetails = async (req, res) => {
 
     // Check access permissions
     const userRole = req.user.role;
-    if (userRole === 'aanganwadi_staff' && child.aanganwadiStaff._id.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
+    if (userRole === 'aanganwadi_staff') {
+      // For aanganwadi staff, check if the child belongs to their aanganwadi
+      const staffMember = await User.findById(req.user.id);
+      if (!staffMember || child.aanganwadiCode !== staffMember.aanganwadiCode) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
     }
 
     res.status(200).json(child);
@@ -144,8 +148,12 @@ export const updateChild = async (req, res) => {
     }
 
     // Check permissions
-    if (req.user.role === 'aanganwadi_staff' && child.aanganwadiStaff.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role === 'aanganwadi_staff') {
+      // For aanganwadi staff, check if the child belongs to their aanganwadi
+      const staffMember = await User.findById(req.user.id);
+      if (!staffMember || child.aanganwadiCode !== staffMember.aanganwadiCode) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
     }
 
     const updatedChild = await Child.findByIdAndUpdate(
@@ -176,8 +184,12 @@ export const addBMIRecord = async (req, res) => {
     }
 
     // Check permissions
-    if (req.user.role === 'aanganwadi_staff' && child.aanganwadiStaff.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role === 'aanganwadi_staff') {
+      // For aanganwadi staff, check if the child belongs to their aanganwadi
+      const staffMember = await User.findById(req.user.id);
+      if (!staffMember || child.aanganwadiCode !== staffMember.aanganwadiCode) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
     }
 
     // Calculate BMI
@@ -232,5 +244,45 @@ export const getBMIHistory = async (req, res) => {
   } catch (error) {
     console.error('Error fetching BMI history:', error);
     res.status(500).json({ message: 'Failed to fetch BMI history' });
+  }
+};
+
+// Delete a child (soft delete - mark as inactive)
+export const deleteChild = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    
+    const child = await Child.findById(childId);
+    if (!child) {
+      return res.status(404).json({ message: 'Child not found' });
+    }
+
+    // Check permissions
+    if (req.user.role === 'aanganwadi_staff') {
+      // For aanganwadi staff, check if the child belongs to their aanganwadi
+      const staffMember = await User.findById(req.user.id);
+      if (!staffMember || child.aanganwadiCode !== staffMember.aanganwadiCode) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+    }
+
+    // Soft delete - mark as inactive instead of permanently deleting
+    const updatedChild = await Child.findByIdAndUpdate(
+      childId,
+      { 
+        isActive: false, 
+        deletedAt: new Date(),
+        deletedBy: req.user.id
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: 'Child record deleted successfully',
+      child: updatedChild
+    });
+  } catch (error) {
+    console.error('Error deleting child:', error);
+    res.status(500).json({ message: 'Failed to delete child' });
   }
 };

@@ -269,8 +269,7 @@ const VaccinationForm = ({ isOpen, onClose, childId, onSuccess }) => {
                 value={formData.facilityName}
                 onChange={handleInputChange}
                 placeholder="Aanganwadi Center Name"
-                readOnly
-                className={`w-full px-3 py-2 border rounded-md bg-gray-50 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   errors.facilityName ? 'border-red-500' : 'border-gray-300'
                 }`}
               />

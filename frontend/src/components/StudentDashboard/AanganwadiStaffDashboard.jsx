@@ -16,6 +16,7 @@ import {
   Heart,
   TrendingUp,
   Syringe,
+  Trash2,
 } from "lucide-react";
 import Notibell from "../Noti/Notibell.jsx";
 import VaccinationForm from '../VaccinationForm/VaccinationForm.jsx';
@@ -177,6 +178,20 @@ const AanganwadiStaffDashboard = () => {
       age--;
     }
     return age;
+  };
+
+  // Handle deleting a child
+  const handleDeleteChild = async (childId, childName) => {
+    if (window.confirm(`Are you sure you want to delete ${childName}? This action cannot be undone.`)) {
+      try {
+        await api.delete(`/children/${childId}`);
+        setChildren(children.filter(child => child._id !== childId));
+        alert(`${childName} has been successfully deleted.`);
+      } catch (err) {
+        console.error("Error deleting child:", err);
+        setError("Failed to delete child.");
+      }
+    }
   };
 
   // Get dashboard statistics
@@ -355,13 +370,6 @@ const AanganwadiStaffDashboard = () => {
             Add New Child
           </button>
           <Link
-            to="/recordform"
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition duration-200"
-          >
-            <FileText className="h-4 w-4" />
-            Add Health Record
-          </Link>
-          <Link
             to="/aibot"
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition duration-200"
           >
@@ -435,6 +443,13 @@ const AanganwadiStaffDashboard = () => {
                       >
                         <Heart className="h-4 w-4" />
                         Health Checkup
+                      </button>
+                      <button
+                        onClick={() => handleDeleteChild(child._id, child.name)}
+                        className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-md text-sm flex items-center gap-1 transition duration-200"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete
                       </button>
                     </div>
                   </div>

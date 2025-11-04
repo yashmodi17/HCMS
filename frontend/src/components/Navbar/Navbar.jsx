@@ -63,12 +63,8 @@ const Navbar = React.memo(() => {
 
       <ul className="hidden md:flex space-x-6 text-lg text-gray-700">
         <li><Link to="/" className="hover:text-green-500">Home</Link></li>
-        <li><Link to="/ai-bot" className="hover:text-green-500">AI Bot</Link></li>
-        {/* <li><Link to="/telemedicine" className="hover:text-green-500">Telemedicine</Link></li> */}
-        <li><Link to="/contact" className="hover:text-green-500">Certificates</Link></li>
-        
-        <li><Link to="/appointment" className="hover:text-green-500">Appointment</Link></li>
-        <li><Link to="/video-call" className="hover:text-green-500">Video Call</Link></li>
+        <li><Link to="/donate" className="hover:text-green-500">Donate</Link></li>
+        <li><Link to="/about" className="hover:text-green-500">About Us</Link></li>
       </ul>
       <div className="hidden md:flex space-x-4">
         {isLoggedIn ? (
@@ -112,26 +108,13 @@ const Navbar = React.memo(() => {
             toggleMenu();
           }} className="text-lg hover:text-green-500 cursor-pointer">Home</div>
           <div onClick={() => {
-            navigate("/ai-bot");
+            navigate("/donate");
             toggleMenu();
-          }} className="text-lg hover:text-green-500 cursor-pointer">AI Bot</div>
+          }} className="text-lg hover:text-green-500 cursor-pointer">Donate</div>
           <div onClick={() => {
-            navigate("/telemedicine");
+            navigate("/about");
             toggleMenu();
-          }} className="text-lg hover:text-green-500 cursor-pointer">Telemedicine</div>
-          <div onClick={() => {
-            navigate("/contact");
-            toggleMenu();
-          }} className="text-lg hover:text-green-500 cursor-pointer">Contact</div>
-        
-          <div onClick={() => {
-            navigate("/appointment");
-            toggleMenu();
-          }} className="text-lg hover:text-green-500 cursor-pointer">Appointment</div>
-          <div onClick={() => {
-            navigate("/video-call");
-            toggleMenu();
-          }} className="text-lg hover:text-green-500 cursor-pointer">Video Call</div>
+          }} className="text-lg hover:text-green-500 cursor-pointer">About Us</div>
 
           {isLoggedIn ? (
             <div className="flex flex-col space-y-2">
