@@ -10,7 +10,7 @@ const Header = () => {
             Book. Confirm. Stay Healthy
           </h1>
           <p className="text-gray-700 text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 leading-relaxed lg:leading-loose">
-            Schedule doctor appointments in seconds – hassle-free booking, instant confirmations, and seamless healthcare access with Arogya Vault!
+            Schedule doctor visits for children – easy appointment booking, instant confirmations, and seamless healthcare access with AanganAsha!
           </p>
         </div>
 

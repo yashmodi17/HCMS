@@ -10,7 +10,7 @@ const Header = () => {
             Reach Out, We're Here to Help!
           </h1>
           <p className="text-gray-700 text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 leading-relaxed lg:leading-loose">
-            Have questions or need support? Contact us anytime – we're just a message away to assist you with Arogya Vault!
+            Have questions or need support? Contact us anytime – we're just a message away to assist you with AanganAsha!
           </p>
         </div>
 

@@ -58,7 +58,7 @@ const Navbar = React.memo(() => {
     <nav className="flex justify-between items-center px-6 py-4 bg-white shadow-md font-ubuntu">
       <div className="flex items-center space-x-2">
         <span className="text-green-500 text-2xl font-bold">✦</span>
-        <Link to="/" className="text-xl font-bold">ArogyaVault</Link>
+        <Link to="/" className="text-xl font-bold">AanganAsha</Link>
       </div>
 
       <ul className="hidden md:flex space-x-6 text-lg text-gray-700">

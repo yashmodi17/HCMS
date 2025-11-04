@@ -5,17 +5,17 @@ const MedicalServices = () => {
   const navigate = useNavigate();
   
   const services = [
-    { title: 'Appointment Booking', buttonText: 'Appointment Booking', route: '/appointment' },
-    { title: 'Telemedicine Support', buttonText: 'Telemedicine Support', route: '/telemedicine' },
-    { title: 'Video Calling Feature', buttonText: 'Video Calling Feature', route: '/video-call' },
-    { title: 'Medical Centers On Maps', buttonText: 'Medical Centers On Maps', route: '/medical-centers' },
-    { title: 'AI-Diagnosis', buttonText: 'AI-Diagnosis', route: '/ai-diagnosis' },
+    { title: 'Child Health Records', buttonText: 'Child Health Records', route: '/appointment' },
+    { title: 'Vaccination Tracking', buttonText: 'Vaccination Tracking', route: '/telemedicine' },
+    { title: 'Doctor Consultation', buttonText: 'Doctor Consultation', route: '/video-call' },
+    { title: 'Growth Monitoring', buttonText: 'Growth Monitoring', route: '/medical-centers' },
+    { title: 'AI Health Insights', buttonText: 'AI Health Insights', route: '/ai-diagnosis' },
   ];
   
   return (
     <div className="bg-gray-50 py-6 sm:py-8 md:py-10 px-4 sm:px-6 md:px-8">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-gray-900 mb-6 text-center">Our Services</h2>
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-gray-900 mb-6 text-center">Our Aanganwadi Services</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
           {services.map((service, index) => (
             <div

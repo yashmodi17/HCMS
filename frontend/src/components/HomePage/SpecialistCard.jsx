@@ -7,18 +7,18 @@ export default function SpecialistCard() {
   const [openIndex, setOpenIndex] = useState(null);
 
   const specialists = [
-    { id: 1, title: "PRESCRIPTION GENERATOR" },
-    { id: 2, title: "APPOINTMENT BOOKING" },
-    { id: 3, title: "AI BASED DIAGNOSIS" },
-    { id: 4, title: "VACCINATION MANAGEMENT" },
-    { id: 5, title: "MEDICAL CERTIFICATE" },
-    { id: 6, title: "TALK WITH AI" },
+    { id: 1, title: "CHILD HEALTH TRACKING" },
+    { id: 2, title: "NUTRITION MONITORING" },
+    { id: 3, title: "VACCINATION MANAGEMENT" },
+    { id: 4, title: "GROWTH ASSESSMENT" },
+    { id: 5, title: "DOCTOR VOLUNTEER PROGRAM" },
+    { id: 6, title: "AI HEALTH INSIGHTS" },
   ];
 
   return (
     <div className="flex flex-col items-center justify-center py-8 sm:py-12 bg-gray-100 px-3 sm:px-4 md:px-6">
       <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-green-500 font-light leading-relaxed tracking-wide text-center mb-4 sm:mb-6 md:mb-8">
-        OUR SPECIALISTS
+        OUR AANGANWADI FEATURES
       </h2>
       <div className="w-full max-w-5xl">
         {specialists.map((specialist, index) => (
@@ -46,7 +46,7 @@ export default function SpecialistCard() {
                   className="overflow-hidden bg-white p-3 sm:p-4 md:p-6 text-gray-700 rounded-b-xl sm:rounded-b-2xl w-full mt-1"
                 >
                   <p className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700">
-                    A specialist in this field focuses on providing expert care and guidance for this medical service.
+                    Specialized care and monitoring for children's health and development in Aanganwadi centers.
                   </p>
                 </motion.div>
               )}

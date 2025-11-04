@@ -10,7 +10,7 @@ const HeaderVideo = () => {
             Seamless Video Consultations, Anytime!
           </h1>
           <p className="text-gray-700 text-lg lg:text-xl mb-8 leading-relaxed lg:leading-loose">
-            Connect with healthcare professionals in real-time – secure, high-quality video calls for instant medical advice and support, right from Arogya Vault!
+            Connect with healthcare professionals in real-time – secure, high-quality video calls for instant medical advice and support, right from AanganAsha!
           </p>
         </div>
 

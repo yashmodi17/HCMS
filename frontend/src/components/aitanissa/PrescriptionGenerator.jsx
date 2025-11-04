@@ -132,7 +132,7 @@ const PrescriptionGenerator = () => {
         
         Follow-up in 7 days if symptoms persist.
         
-        ArogyaVault Verified
+        AanganAsha Verified
         `;
         setGeneratedPrescription(sampleResponse);
         setIsLoading(false);
@@ -159,7 +159,7 @@ const PrescriptionGenerator = () => {
     // White text for header
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
-    doc.text("ArogyaVault Medical Prescription", 105, 14, { align: "center" });
+    doc.text("AanganAsha Medical Prescription", 105, 14, { align: "center" });
 
     // Reset to black text for body
     doc.setTextColor(0, 0, 0);
@@ -201,7 +201,7 @@ const PrescriptionGenerator = () => {
         {/* Header */}
         <div className="bg-green-500 text-white p-4 rounded-t-lg">
           <h1 className="text-2xl font-bold text-center">
-            ArogyaVault Prescription Generator
+            AanganAsha Prescription Generator
           </h1>
         </div>
 
