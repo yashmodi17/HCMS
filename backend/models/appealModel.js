@@ -154,4 +154,96 @@ AppealSchema.pre('save', function(next) {
   next();
 });
 
+// Track status changes in pre-save hook
+AppealSchema.pre('save', function(next) {
+  if (this.isModified('status')) {
+    this._statusChanged = true;
+    this._previousStatus = this.isNew ? null : this.get('status');
+    console.log(`Status change detected: ${this._previousStatus} → ${this.status}`);
+  }
+  next();
+});
+
+// Simple auto-allocation when appeal status changes to approved
+AppealSchema.post('save', async function(doc) {
+  try {
+    console.log(`Post-save hook triggered for appeal ${doc.appealId || doc._id}`);
+    console.log(`Current status: ${doc.status}`);
+    console.log(`Status changed: ${doc._statusChanged}`);
+    
+    // Trigger allocation if status is approved (regardless of change detection)
+    if (doc.status === 'approved' || doc.status === 'partially_approved') {
+      console.log(`🚀 Starting auto-allocation for appeal: ${doc.appealId || doc._id}`);
+      
+      const { Inventory } = await import('./index.js');
+      
+      // Get items to allocate
+      const itemsToAllocate = doc.approvedItems || doc.requestedItems || [];
+      console.log(`Items to allocate:`, itemsToAllocate);
+      
+      for (const item of itemsToAllocate) {
+        try {
+          console.log(`Processing item: ${item.itemType}, Amount/Quantity: ${item.amount || item.quantity}`);
+          
+          if (item.itemType === 'money' && item.amount) {
+            // Find money inventory and reduce available amount
+            const moneyInventory = await Inventory.findOne({ 
+              itemType: 'money',
+              $expr: {
+                $gte: [
+                  { $subtract: [{ $ifNull: ['$totalAmount', 0] }, { $ifNull: ['$allocatedAmount', 0] }] },
+                  item.amount
+                ]
+              }
+            });
+            
+            console.log(`Money inventory found:`, moneyInventory);
+            
+            if (moneyInventory) {
+              const currentAvailable = (moneyInventory.totalAmount || 0) - (moneyInventory.allocatedAmount || 0);
+              moneyInventory.allocatedAmount = (moneyInventory.allocatedAmount || 0) + item.amount;
+              moneyInventory.availableAmount = (moneyInventory.totalAmount || 0) - moneyInventory.allocatedAmount;
+              await moneyInventory.save();
+              console.log(`✅ Allocated ₹${item.amount} from money inventory. Available: ₹${currentAvailable} → ₹${moneyInventory.availableAmount}`);
+            } else {
+              console.warn(`❌ Not enough money in inventory for ₹${item.amount}`);
+            }
+          } else if (item.quantity) {
+            // Find item inventory and reduce available quantity
+            const itemInventory = await Inventory.findOne({ 
+              itemType: item.itemType,
+              $expr: {
+                $gte: [
+                  { $subtract: [{ $ifNull: ['$totalQuantity', 0] }, { $ifNull: ['$allocatedQuantity', 0] }] },
+                  item.quantity
+                ]
+              }
+            });
+            
+            console.log(`Item inventory found:`, itemInventory);
+            
+            if (itemInventory) {
+              const currentAvailable = (itemInventory.totalQuantity || 0) - (itemInventory.allocatedQuantity || 0);
+              itemInventory.allocatedQuantity = (itemInventory.allocatedQuantity || 0) + item.quantity;
+              itemInventory.availableQuantity = (itemInventory.totalQuantity || 0) - itemInventory.allocatedQuantity;
+              await itemInventory.save();
+              console.log(`✅ Allocated ${item.quantity} ${item.itemType}. Available: ${currentAvailable} → ${itemInventory.availableQuantity}`);
+            } else {
+              console.warn(`❌ Not enough ${item.itemType} in inventory for ${item.quantity} units`);
+            }
+          }
+        } catch (err) {
+          console.error(`❌ Error allocating ${item.itemType}:`, err);
+        }
+      }
+      
+      console.log(`🏁 Allocation complete for appeal: ${doc.appealId || doc._id}`);
+    } else {
+      console.log(`⏭️ Skipping allocation - status is: ${doc.status}`);
+    }
+  } catch (error) {
+    console.error('❌ Error in post-save auto-allocation:', error);
+  }
+});
+
 export const Appeal = mongoose.model("Appeal", AppealSchema);

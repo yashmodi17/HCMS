@@ -8,10 +8,18 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import connectDB from "./db/database.js";
 import Routes from "./routes/index.js";
+import { startAppealWatcher } from "./utils/appealWatcher.js";
 
 const app = express();
 dotenv.config();
-connectDB();
+
+// Connect to database and start appeal watcher
+connectDB().then(() => {
+  // Start the appeal watcher after database connection
+  setTimeout(() => {
+    startAppealWatcher();
+  }, 2000); // Wait 2 seconds for models to be ready
+});
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());

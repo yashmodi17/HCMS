@@ -14,6 +14,18 @@ const CoordinatorDashboard = () => {
   const [appeals, setAppeals] = useState([]);
   const [showAanganwadiForm, setShowAanganwadiForm] = useState(false);
   const [showAppealForm, setShowAppealForm] = useState(false);
+  const [showAppealDetails, setShowAppealDetails] = useState(false);
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState(null);
+  const [selectedAppeal, setSelectedAppeal] = useState(null);
+  const [appealFormData, setAppealFormData] = useState({
+    requestedQuantity: 1,
+    urgency: 'medium',
+    title: '',
+    description: '',
+    justification: '',
+    expectedUsage: '',
+    additionalNotes: ''
+  });
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -101,13 +113,63 @@ const CoordinatorDashboard = () => {
 
   // Open appeal form for specific item
   const openAppealForm = (item) => {
-    // For now, just show alert - we'll add full form later
-    alert(`Request ${item.itemDescription}? Full appeal form coming soon!`);
+    setSelectedInventoryItem(item);
+    setAppealFormData({
+      requestedQuantity: 1,
+      urgency: 'medium',
+      title: `Request for ${item.itemDescription}`,
+      description: `Request for ${item.itemDescription} items from inventory`,
+      justification: '',
+      expectedUsage: '',
+      additionalNotes: ''
+    });
+    setShowAppealForm(true);
+  };
+
+  // Handle appeal form submission
+  const handleAppealSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const requestedItem = {
+        itemType: selectedInventoryItem.itemType,
+        itemName: selectedInventoryItem.itemDescription,
+        specification: selectedInventoryItem.condition,
+        reason: appealFormData.justification,
+        priority: appealFormData.urgency === 'urgent' ? 'high' : appealFormData.urgency === 'high' ? 'medium' : 'low'
+      };
+
+      // Add quantity or amount based on item type
+      if (selectedInventoryItem.itemType === 'money') {
+        requestedItem.amount = parseInt(appealFormData.requestedQuantity);
+        requestedItem.purpose = appealFormData.expectedUsage;
+      } else {
+        requestedItem.quantity = parseInt(appealFormData.requestedQuantity);
+      }
+
+      const appealData = {
+        title: appealFormData.title,
+        description: appealFormData.description,
+        urgency: appealFormData.urgency,
+        justification: appealFormData.justification,
+        currentSituation: appealFormData.expectedUsage,
+        requestedItems: [requestedItem]
+      };
+
+      await api.post('/appeals/create', appealData);
+      alert('Appeal submitted successfully!');
+      setShowAppealForm(false);
+      setSelectedInventoryItem(null);
+      fetchAppeals(); // Refresh appeals list
+    } catch (error) {
+      console.error('Error submitting appeal:', error);
+      alert(`Failed to submit appeal: ${error.response?.data?.message || error.message}`);
+    }
   };
 
   // View appeal details
   const viewAppealDetails = (appeal) => {
-    alert(`Appeal #${appeal._id.slice(-6)} details will be shown here.`);
+    setSelectedAppeal(appeal);
+    setShowAppealDetails(true);
   };
 
   // Load inventory and appeals when tabs are accessed
@@ -117,6 +179,22 @@ const CoordinatorDashboard = () => {
     } else if (activeTab === 'appeals') {
       fetchAppeals();
     }
+  }, [activeTab]);
+
+  // Auto-refresh appeals every 30 seconds when appeals tab is active
+  useEffect(() => {
+    let interval;
+    if (activeTab === 'appeals') {
+      interval = setInterval(() => {
+        fetchAppeals();
+      }, 30000); // Refresh every 30 seconds
+    }
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [activeTab]);
 
   if (loading) {
@@ -550,11 +628,14 @@ const CoordinatorDashboard = () => {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                  {item.donationType}
+                                  {item.itemType || item.category}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {item.totalQuantity - item.allocatedQuantity}
+                                {item.itemType === 'money' 
+                                  ? `₹${item.availableAmount || item.totalAmount}` 
+                                  : (item.availableQuantity || (item.totalQuantity - item.allocatedQuantity))
+                                }
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {item.condition || 'Good'}
@@ -562,8 +643,19 @@ const CoordinatorDashboard = () => {
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <button
                                   onClick={() => openAppealForm(item)}
-                                  className="text-green-600 hover:text-green-900"
-                                  disabled={item.totalQuantity - item.allocatedQuantity <= 0}
+                                  className={`${
+                                    (item.itemType === 'money' 
+                                      ? (item.availableAmount || item.totalAmount) <= 0
+                                      : (item.availableQuantity || (item.totalQuantity - item.allocatedQuantity)) <= 0
+                                    )
+                                      ? 'text-gray-400 cursor-not-allowed'
+                                      : 'text-green-600 hover:text-green-900'
+                                  }`}
+                                  disabled={
+                                    item.itemType === 'money' 
+                                      ? (item.availableAmount || item.totalAmount) <= 0
+                                      : (item.availableQuantity || (item.totalQuantity - item.allocatedQuantity)) <= 0
+                                  }
                                 >
                                   Request
                                 </button>
@@ -627,7 +719,7 @@ const CoordinatorDashboard = () => {
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900">
                                   {appeal.requestedItems.map(item => 
-                                    `${item.itemDescription} (${item.requestedQuantity})`
+                                    `${item.itemName} (${item.quantity || item.amount || 'N/A'}${item.itemType === 'money' ? ' ₹' : ''})`
                                   ).join(', ')}
                                 </div>
                               </td>
@@ -684,6 +776,277 @@ const CoordinatorDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Appeal Form Modal */}
+      {showAppealForm && selectedInventoryItem && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Request: {selectedInventoryItem.itemDescription}
+              </h3>
+              
+              <form onSubmit={handleAppealSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Appeal Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={appealFormData.title}
+                    onChange={(e) => setAppealFormData({...appealFormData, title: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description *
+                  </label>
+                  <textarea
+                    value={appealFormData.description}
+                    onChange={(e) => setAppealFormData({...appealFormData, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    rows="2"
+                    placeholder="Brief description of your need"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {selectedInventoryItem.itemType === 'money' ? 'Requested Amount *' : 'Requested Quantity *'}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={selectedInventoryItem.itemType === 'money' 
+                      ? (selectedInventoryItem.availableAmount || selectedInventoryItem.totalAmount)
+                      : (selectedInventoryItem.availableQuantity || (selectedInventoryItem.totalQuantity - selectedInventoryItem.allocatedQuantity))
+                    }
+                    value={appealFormData.requestedQuantity}
+                    onChange={(e) => setAppealFormData({...appealFormData, requestedQuantity: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Available: {selectedInventoryItem.itemType === 'money' 
+                      ? `₹${selectedInventoryItem.availableAmount || selectedInventoryItem.totalAmount}`
+                      : (selectedInventoryItem.availableQuantity || (selectedInventoryItem.totalQuantity - selectedInventoryItem.allocatedQuantity))
+                    }
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Urgency Level *
+                  </label>
+                  <select
+                    value={appealFormData.urgency}
+                    onChange={(e) => setAppealFormData({...appealFormData, urgency: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="low">Low - Can wait</option>
+                    <option value="medium">Medium - Regular need</option>
+                    <option value="high">High - Needed soon</option>
+                    <option value="urgent">Urgent - Immediate need</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Justification *
+                  </label>
+                  <textarea
+                    value={appealFormData.justification}
+                    onChange={(e) => setAppealFormData({...appealFormData, justification: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    rows="3"
+                    placeholder="Why do you need these items?"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Expected Usage
+                  </label>
+                  <textarea
+                    value={appealFormData.expectedUsage}
+                    onChange={(e) => setAppealFormData({...appealFormData, expectedUsage: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    rows="2"
+                    placeholder="How will these items be used?"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Supporting Documents
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Upload supporting documents (PDF, DOC, JPG, PNG) - Max 5MB each
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-green-600 text-white py-2 rounded-md hover:bg-green-700"
+                  >
+                    Submit Appeal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAppealForm(false);
+                      setSelectedInventoryItem(null);
+                    }}
+                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Appeal Details Modal */}
+      {showAppealDetails && selectedAppeal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-2xl max-w-2xl shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Appeal Details #{selectedAppeal._id.slice(-6)}
+                </h3>
+                <button
+                  onClick={() => setShowAppealDetails(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <span className={`inline-flex px-2 py-1 text-xs leading-5 font-semibold rounded-full ${
+                      selectedAppeal.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      selectedAppeal.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      selectedAppeal.status === 'under_review' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedAppeal.status.replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Urgency</label>
+                    <span className={`inline-flex px-2 py-1 text-xs leading-5 font-semibold rounded-full ${
+                      selectedAppeal.urgency === 'urgent' ? 'bg-red-100 text-red-800' :
+                      selectedAppeal.urgency === 'high' ? 'bg-orange-100 text-orange-800' :
+                      selectedAppeal.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {selectedAppeal.urgency.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <p className="text-sm text-gray-900">{selectedAppeal.title}</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <p className="text-sm text-gray-900">{selectedAppeal.description}</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Justification</label>
+                  <p className="text-sm text-gray-900">{selectedAppeal.justification}</p>
+                </div>
+
+                {selectedAppeal.currentSituation && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Situation</label>
+                    <p className="text-sm text-gray-900">{selectedAppeal.currentSituation}</p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Requested Items</label>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    {selectedAppeal.requestedItems.map((item, index) => (
+                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
+                        <div>
+                          <p className="font-medium text-gray-900">{item.itemName}</p>
+                          <p className="text-sm text-gray-600">Type: {item.itemType}</p>
+                          {item.reason && <p className="text-sm text-gray-600">Reason: {item.reason}</p>}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-gray-900">
+                            {item.itemType === 'money' ? `₹${item.amount}` : `${item.quantity} units`}
+                          </p>
+                          <p className="text-sm text-gray-600">Priority: {item.priority}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Submitted On</label>
+                    <p className="text-sm text-gray-900">{new Date(selectedAppeal.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Aanganwadi</label>
+                    <p className="text-sm text-gray-900">{selectedAppeal.aanganwadiName} ({selectedAppeal.aanganwadiCode})</p>
+                  </div>
+                </div>
+
+                {selectedAppeal.reviewedBy && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Reviewed By</label>
+                    <p className="text-sm text-gray-900">{selectedAppeal.reviewedBy.name}</p>
+                  </div>
+                )}
+
+                {selectedAppeal.adminComments && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin Comments</label>
+                    <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded">{selectedAppeal.adminComments}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => setShowAppealDetails(false)}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

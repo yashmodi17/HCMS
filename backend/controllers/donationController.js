@@ -83,6 +83,31 @@ export const createDonation = async (req, res) => {
         console.error('Error creating inventory item:', inventoryError);
         // Don't fail the donation if inventory creation fails
       }
+    } else if (donationType === 'money' && amount) {
+      // For money donations, create a financial inventory record
+      try {
+        const moneyInventoryItem = new Inventory({
+          itemType: 'money',
+          itemName: 'Monetary Donation',
+          itemDescription: `₹${amount} donation from ${donorName}`,
+          category: 'money',
+          totalAmount: parseFloat(amount),
+          availableAmount: parseFloat(amount),
+          allocatedAmount: 0,
+          condition: 'good',
+          sourceType: 'donation',
+          sourceDonationId: donation._id,
+          status: 'available',
+          location: 'fund_account',
+          addedBy: 'system',
+          minimumStock: 0
+        });
+
+        await moneyInventoryItem.save();
+        console.log('Money inventory item created for donation:', moneyInventoryItem._id);
+      } catch (inventoryError) {
+        console.error('Error creating money inventory item:', inventoryError);
+      }
     }
     
     res.status(201).json({
@@ -268,12 +293,9 @@ export const getDonationStats = async (req, res) => {
 // Manually process existing donations into inventory
 export const processDonationsToInventory = async (req, res) => {
   try {
-    // Find all received donations that are not money and haven't been processed
+    // Find all received donations that haven't been processed
     const donations = await Donation.find({
-      status: 'received',
-      donationType: { $ne: 'money' },
-      itemDescription: { $exists: true, $ne: '' },
-      quantity: { $exists: true, $gt: 0 }
+      status: 'received'
     });
 
     let processedCount = 0;
@@ -283,25 +305,47 @@ export const processDonationsToInventory = async (req, res) => {
       const existingInventory = await Inventory.findOne({ sourceDonationId: donation._id });
       
       if (!existingInventory) {
-        const inventoryItem = new Inventory({
-          itemType: donation.donationType,
-          itemName: donation.itemDescription,
-          itemDescription: donation.itemDescription,
-          category: donation.donationType,
-          totalQuantity: donation.quantity,
-          availableQuantity: donation.quantity,
-          allocatedQuantity: 0,
-          condition: donation.condition || 'good',
-          sourceType: 'donation',
-          sourceDonationId: donation._id,
-          status: 'available',
-          location: 'main_warehouse',
-          addedBy: req.user ? req.user.id : 'system',
-          minimumStock: 5
-        });
-
-        await inventoryItem.save();
-        processedCount++;
+        if (donation.donationType === 'money' && donation.amount) {
+          // Process money donation
+          const inventoryItem = new Inventory({
+            itemType: 'money',
+            itemName: 'Monetary Donation',
+            itemDescription: `₹${donation.amount} donation from ${donation.donorName}`,
+            category: 'money',
+            totalAmount: donation.amount,
+            availableAmount: donation.amount,
+            allocatedAmount: 0,
+            condition: 'good',
+            sourceType: 'donation',
+            sourceDonationId: donation._id,
+            status: 'available',
+            location: 'fund_account',
+            addedBy: req.user ? req.user.id : 'system',
+            minimumStock: 0
+          });
+          await inventoryItem.save();
+          processedCount++;
+        } else if (donation.donationType !== 'money' && donation.itemDescription && donation.quantity) {
+          // Process physical item donation
+          const inventoryItem = new Inventory({
+            itemType: donation.donationType,
+            itemName: donation.itemDescription,
+            itemDescription: donation.itemDescription,
+            category: donation.donationType,
+            totalQuantity: donation.quantity,
+            availableQuantity: donation.quantity,
+            allocatedQuantity: 0,
+            condition: donation.condition || 'good',
+            sourceType: 'donation',
+            sourceDonationId: donation._id,
+            status: 'available',
+            location: 'main_warehouse',
+            addedBy: req.user ? req.user.id : 'system',
+            minimumStock: 5
+          });
+          await inventoryItem.save();
+          processedCount++;
+        }
       }
     }
 

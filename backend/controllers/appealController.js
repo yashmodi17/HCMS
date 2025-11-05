@@ -19,14 +19,30 @@ export const createAppeal = async (req, res) => {
 
     // Get coordinator's aanganwadi details
     const coordinator = await User.findById(req.user.id);
-    if (!coordinator.aanganwadiCode) {
+    console.log('Coordinator details:', {
+      id: coordinator._id,
+      name: coordinator.name,
+      aanganwadiCode: coordinator.aanganwadiCode,
+      aanganwadiSetup: coordinator.aanganwadiSetup,
+      assignedAanganwadis: coordinator.assignedAanganwadis
+    });
+    
+    const aanganwadiCode = coordinator.aanganwadiCode || 
+                          coordinator.aanganwadiSetup?.code || 
+                          coordinator.assignedAanganwadis?.[0];
+    const aanganwadiName = coordinator.aanganwadiName || 
+                          coordinator.aanganwadiSetup?.name;
+    
+    console.log('Resolved aanganwadi:', { aanganwadiCode, aanganwadiName });
+    
+    if (!aanganwadiCode) {
       return res.status(400).json({ message: 'Coordinator must be assigned to an aanganwadi' });
     }
 
     const appeal = new Appeal({
       coordinatorId: req.user.id,
-      aanganwadiCode: coordinator.aanganwadiCode,
-      aanganwadiName: coordinator.aanganwadiName || `Aanganwadi ${coordinator.aanganwadiCode}`,
+      aanganwadiCode: aanganwadiCode,
+      aanganwadiName: aanganwadiName || `Aanganwadi ${aanganwadiCode}`,
       title,
       description,
       urgency,
@@ -132,7 +148,7 @@ export const updateAppealStatus = async (req, res) => {
       return res.status(404).json({ message: 'Appeal not found' });
     }
 
-    // Update appeal
+    // Update appeal - the post-save hook will handle inventory allocation automatically
     appeal.status = status;
     appeal.reviewedBy = req.user.id;
     appeal.reviewDate = new Date();
@@ -142,36 +158,9 @@ export const updateAppealStatus = async (req, res) => {
       appeal.approvedBy = req.user.id;
       appeal.approvalDate = new Date();
       appeal.approvedItems = approvedItems || appeal.requestedItems;
-      
-      // Allocate inventory for approved items
-      for (const item of appeal.approvedItems) {
-        try {
-          const inventoryItems = await Inventory.find({
-            itemType: item.itemType,
-            status: 'available'
-          });
-
-          for (const invItem of inventoryItems) {
-            if (item.itemType === 'money' && item.amount) {
-              if (invItem.availableAmount >= item.amount) {
-                invItem.allocatedAmount += item.amount;
-                await invItem.save();
-                break;
-              }
-            } else if (item.quantity) {
-              if (invItem.availableQuantity >= item.quantity) {
-                invItem.allocatedQuantity += item.quantity;
-                await invItem.save();
-                break;
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Error allocating inventory:', err);
-        }
-      }
     }
 
+    // Save the appeal - this will trigger the post-save hook for auto-allocation
     await appeal.save();
 
     // Create notification for coordinator
