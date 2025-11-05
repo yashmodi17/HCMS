@@ -1,8 +1,11 @@
-import { Donation, User } from '../models/index.js';
+import { Donation, User, Inventory } from '../models/index.js';
 
 // Create a new donation
 export const createDonation = async (req, res) => {
   try {
+    console.log('Request body:', req.body);
+    console.log('Request files:', req.files);
+
     const {
       donorName,
       donorEmail,
@@ -17,22 +20,70 @@ export const createDonation = async (req, res) => {
       condition
     } = req.body;
 
+    // Validate required fields
+    if (!donorName || !donorEmail || !donorPhone || !donationType) {
+      return res.status(400).json({ 
+        message: 'Missing required fields: donorName, donorEmail, donorPhone, donationType' 
+      });
+    }
+
+    // Process uploaded images
+    const images = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        images.push({
+          url: file.path,
+          publicId: file.filename,
+          format: file.mimetype
+        });
+      });
+    }
+
     const donation = new Donation({
       donorName,
       donorEmail,
       donorPhone,
       donorAddress,
       donationType,
-      amount,
+      amount: amount ? parseFloat(amount) : undefined,
       paymentMethod,
       transactionId,
       itemDescription,
-      quantity,
+      quantity: quantity ? parseInt(quantity) : undefined,
       condition,
+      images,
       status: 'received'
     });
 
     await donation.save();
+    
+    // Automatically add non-money donations to inventory
+    if (donationType !== 'money' && itemDescription && quantity) {
+      try {
+        const inventoryItem = new Inventory({
+          itemType: donationType,
+          itemName: itemDescription,
+          itemDescription: itemDescription,
+          category: donationType,
+          totalQuantity: parseInt(quantity),
+          availableQuantity: parseInt(quantity),
+          allocatedQuantity: 0,
+          condition: condition || 'good',
+          sourceType: 'donation',
+          sourceDonationId: donation._id,
+          status: 'available',
+          location: 'main_warehouse',
+          addedBy: 'system',
+          minimumStock: 5
+        });
+
+        await inventoryItem.save();
+        console.log('Inventory item created for donation:', inventoryItem._id);
+      } catch (inventoryError) {
+        console.error('Error creating inventory item:', inventoryError);
+        // Don't fail the donation if inventory creation fails
+      }
+    }
     
     res.status(201).json({
       message: 'Donation received successfully',
@@ -40,7 +91,7 @@ export const createDonation = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating donation:', error);
-    res.status(500).json({ message: 'Failed to create donation' });
+    res.status(500).json({ message: 'Failed to create donation', error: error.message });
   }
 };
 
@@ -211,5 +262,55 @@ export const getDonationStats = async (req, res) => {
   } catch (error) {
     console.error('Error fetching donation stats:', error);
     res.status(500).json({ message: 'Failed to fetch donation statistics' });
+  }
+};
+
+// Manually process existing donations into inventory
+export const processDonationsToInventory = async (req, res) => {
+  try {
+    // Find all received donations that are not money and haven't been processed
+    const donations = await Donation.find({
+      status: 'received',
+      donationType: { $ne: 'money' },
+      itemDescription: { $exists: true, $ne: '' },
+      quantity: { $exists: true, $gt: 0 }
+    });
+
+    let processedCount = 0;
+    
+    for (const donation of donations) {
+      // Check if this donation already has an inventory item
+      const existingInventory = await Inventory.findOne({ sourceDonationId: donation._id });
+      
+      if (!existingInventory) {
+        const inventoryItem = new Inventory({
+          itemType: donation.donationType,
+          itemName: donation.itemDescription,
+          itemDescription: donation.itemDescription,
+          category: donation.donationType,
+          totalQuantity: donation.quantity,
+          availableQuantity: donation.quantity,
+          allocatedQuantity: 0,
+          condition: donation.condition || 'good',
+          sourceType: 'donation',
+          sourceDonationId: donation._id,
+          status: 'available',
+          location: 'main_warehouse',
+          addedBy: req.user ? req.user.id : 'system',
+          minimumStock: 5
+        });
+
+        await inventoryItem.save();
+        processedCount++;
+      }
+    }
+
+    res.status(200).json({
+      message: `Successfully processed ${processedCount} donations into inventory`,
+      processedCount
+    });
+  } catch (error) {
+    console.error('Error processing donations to inventory:', error);
+    res.status(500).json({ message: 'Failed to process donations to inventory' });
   }
 };

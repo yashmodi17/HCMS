@@ -9,6 +9,8 @@ import doctorRouter from "./doctorRoutes.js";
 import coordinatorRouter from "./coordinatorRoutes.js";
 import aanganwadiRouter from "./aanganwadiRoutes.js";
 import notificationRoutes from "./notififcationRoutes.js";
+import inventoryRouter from "./inventoryRoutes.js";
+import appealRouter from "./appealRoutes.js";
 
 const router = express.Router();
 
@@ -22,5 +24,7 @@ router.use("/coordinator", coordinatorRouter);
 router.use("/doctor", doctorRouter);
 router.use("/aanganwadi", aanganwadiRouter);
 router.use("/notifications",notificationRoutes);
+router.use("/inventory", inventoryRouter);
+router.use("/appeals", appealRouter);
 
 export default router;

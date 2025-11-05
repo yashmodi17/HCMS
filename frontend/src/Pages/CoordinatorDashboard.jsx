@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserCheck, School, Settings, MapPin, Hash, Plus } from 'lucide-react';
+import { Users, UserCheck, School, Settings, MapPin, Hash, Plus, Package, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/UserContext';
 import { api } from '../axios.config';
@@ -10,7 +10,10 @@ const CoordinatorDashboard = () => {
   const [students, setStudents] = useState([]);
   const [volunteerDoctors, setVolunteerDoctors] = useState([]);
   const [staffMembers, setStaffMembers] = useState([]);
+  const [inventory, setInventory] = useState([]);
+  const [appeals, setAppeals] = useState([]);
   const [showAanganwadiForm, setShowAanganwadiForm] = useState(false);
+  const [showAppealForm, setShowAppealForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -63,6 +66,58 @@ const CoordinatorDashboard = () => {
   const handleViewProfile = (studentId) => {
     navigate(`/child/${studentId}`);
   };
+
+  // Fetch inventory items
+  const fetchInventory = async () => {
+    try {
+      const response = await api.get('/inventory');
+      setInventory(response.data);
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+    }
+  };
+
+  // Process donations to inventory
+  const processDonationsToInventory = async () => {
+    try {
+      const response = await api.post('/donations/process-to-inventory');
+      alert(`${response.data.message}\nProcessed: ${response.data.processedCount} donations`);
+      fetchInventory(); // Refresh inventory after processing
+    } catch (error) {
+      console.error('Error processing donations:', error);
+      alert('Failed to process donations to inventory');
+    }
+  };
+
+  // Fetch coordinator's appeals
+  const fetchAppeals = async () => {
+    try {
+      const response = await api.get('/appeals/my-appeals');
+      setAppeals(response.data);
+    } catch (error) {
+      console.error('Error fetching appeals:', error);
+    }
+  };
+
+  // Open appeal form for specific item
+  const openAppealForm = (item) => {
+    // For now, just show alert - we'll add full form later
+    alert(`Request ${item.itemDescription}? Full appeal form coming soon!`);
+  };
+
+  // View appeal details
+  const viewAppealDetails = (appeal) => {
+    alert(`Appeal #${appeal._id.slice(-6)} details will be shown here.`);
+  };
+
+  // Load inventory and appeals when tabs are accessed
+  useEffect(() => {
+    if (activeTab === 'inventory') {
+      fetchInventory();
+    } else if (activeTab === 'appeals') {
+      fetchAppeals();
+    }
+  }, [activeTab]);
 
   if (loading) {
     return (
@@ -214,7 +269,9 @@ const CoordinatorDashboard = () => {
                     { id: 'overview', label: 'Overview', icon: Settings },
                     { id: 'students', label: 'Students', icon: Users },
                     { id: 'volunteers', label: 'Volunteer Doctors', icon: UserCheck },
-                    { id: 'staff', label: 'Staff Members', icon: School }
+                    { id: 'staff', label: 'Staff Members', icon: School },
+                    { id: 'inventory', label: 'Inventory', icon: Package },
+                    { id: 'appeals', label: 'Appeals', icon: FileText }
                   ].map(({ id, label, icon: Icon }) => (
                     <button
                       key={id}
@@ -435,6 +492,175 @@ const CoordinatorDashboard = () => {
                         <div className="text-center py-8 text-gray-500">
                           <School className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                           <p>No staff members found</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Inventory Tab */}
+                {activeTab === 'inventory' && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-xl font-semibold">Available Inventory</h2>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => processDonationsToInventory()}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Process Donations
+                        </button>
+                        <button
+                          onClick={() => fetchInventory()}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                        >
+                          <Package className="h-4 w-4" />
+                          Refresh
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white border rounded-lg overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Item
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Type
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Available
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Condition
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {inventory.map((item) => (
+                            <tr key={item._id}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900">{item.itemDescription}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                  {item.donationType}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {item.totalQuantity - item.allocatedQuantity}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {item.condition || 'Good'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button
+                                  onClick={() => openAppealForm(item)}
+                                  className="text-green-600 hover:text-green-900"
+                                  disabled={item.totalQuantity - item.allocatedQuantity <= 0}
+                                >
+                                  Request
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      
+                      {inventory.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                          <p>No inventory items available</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Appeals Tab */}
+                {activeTab === 'appeals' && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-xl font-semibold">My Appeals</h2>
+                      <button
+                        onClick={() => setShowAppealForm(true)}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        New Appeal
+                      </button>
+                    </div>
+                    
+                    <div className="bg-white border rounded-lg overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Appeal ID
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Items Requested
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {appeals.map((appeal) => (
+                            <tr key={appeal._id}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                #{appeal._id.slice(-6)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">
+                                  {appeal.requestedItems.map(item => 
+                                    `${item.itemDescription} (${item.requestedQuantity})`
+                                  ).join(', ')}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  appeal.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                  appeal.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                  appeal.status === 'under_review' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {appeal.status.replace('_', ' ')}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {new Date(appeal.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button
+                                  onClick={() => viewAppealDetails(appeal)}
+                                  className="text-blue-600 hover:text-blue-900"
+                                >
+                                  View
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      
+                      {appeals.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                          <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                          <p>No appeals submitted yet</p>
                         </div>
                       )}
                     </div>

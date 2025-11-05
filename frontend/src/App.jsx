@@ -11,6 +11,7 @@ import PatientForm from "./Pages/PatientForm";
 import Aibot from "./Pages/Aibot";
 import Booking from "./Pages/Booking";
 import Contact from "./Pages/Contact";
+import DonatePage from "./Pages/DonatePage";
 import Telemedicine from "./Pages/telemedicine";
 import VideoCall from "./Pages/VideoCall";
 import DoctorsDashboard from "./Pages/DoctorsDashboard";
@@ -76,6 +77,7 @@ const App = () => {
         <Route path="/" element={<HomePage/>}/>
         <Route path="/ai-bot" element={<Aibot />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/donate" element={<DonatePage />} />
         <Route path="/profile" element={<AanganwadiStaffDashboard />} />
         <Route path="/appointment" element={<Booking />} />
         <Route path="/video-call" element={<VideoCall />} />

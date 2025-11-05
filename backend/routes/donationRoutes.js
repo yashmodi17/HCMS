@@ -6,18 +6,21 @@ import {
   verifyDonation,
   distributeDonation,
   getDonationsByAanganwadi,
-  getDonationStats
+  getDonationStats,
+  processDonationsToInventory
 } from '../controllers/donationController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
+import upload from '../utils/multer.js';
 
 const router = express.Router();
 
-// Public route for creating donations
-router.post('/create', createDonation);
+// Public route for creating donations with file upload support
+router.post('/create', upload.array('images', 5), createDonation);
 
 // Routes for coordinators
 router.get('/', authMiddleware(['coordinator']), getAllDonations);
 router.get('/stats', authMiddleware(['coordinator']), getDonationStats);
+router.post('/process-to-inventory', authMiddleware(['coordinator', 'admin']), processDonationsToInventory);
 router.get('/:donationId', authMiddleware(['coordinator']), getDonationById);
 router.put('/:donationId/verify', authMiddleware(['coordinator']), verifyDonation);
 router.put('/:donationId/distribute', authMiddleware(['coordinator']), distributeDonation);
