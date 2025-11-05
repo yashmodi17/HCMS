@@ -7,6 +7,7 @@ import { showAlert } from "./components/alert-system.js";
 
 
 import HomePage from "./Pages/HomePage";
+import AboutUs from "./Pages/AboutUs";
 import PatientForm from "./Pages/PatientForm";
 import Aibot from "./Pages/Aibot";
 import Booking from "./Pages/Booking";
@@ -75,6 +76,7 @@ const App = () => {
       <Navbar />
       <Routes>  
         <Route path="/" element={<HomePage/>}/>
+        <Route path="/about-us" element={<AboutUs />} />
         <Route path="/ai-bot" element={<Aibot />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/donate" element={<DonatePage />} />

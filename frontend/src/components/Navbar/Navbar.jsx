@@ -64,7 +64,7 @@ const Navbar = React.memo(() => {
       <ul className="hidden md:flex space-x-6 text-lg text-gray-700">
         <li><Link to="/" className="hover:text-green-500">Home</Link></li>
         <li><Link to="/donate" className="hover:text-green-500">Donate</Link></li>
-        <li><Link to="/about" className="hover:text-green-500">About Us</Link></li>
+        <li><Link to="/about-us" className="hover:text-green-500">About Us</Link></li>
       </ul>
       <div className="hidden md:flex space-x-4">
         {isLoggedIn ? (
@@ -112,7 +112,7 @@ const Navbar = React.memo(() => {
             toggleMenu();
           }} className="text-lg hover:text-green-500 cursor-pointer">Donate</div>
           <div onClick={() => {
-            navigate("/about");
+            navigate("/about-us");
             toggleMenu();
           }} className="text-lg hover:text-green-500 cursor-pointer">About Us</div>
 
