@@ -10,6 +10,7 @@ import {
   Upload,
   X
 } from 'lucide-react';
+import { MakePayment } from '../payment/razorpay.js';
 
 const DonatePage = () => {
   const [activeTab, setActiveTab] = useState('money');
@@ -18,6 +19,7 @@ const DonatePage = () => {
   const [error, setError] = useState('');
 
   // Form state for different donation types
+  const [loading,setLoading]=useState(false);
   const [donorInfo, setDonorInfo] = useState({
     donorName: '',
     donorEmail: '',
@@ -45,6 +47,18 @@ const DonatePage = () => {
     { id: 'clothes', name: 'Clothes', icon: Shirt, color: 'purple' },
     { id: 'toys', name: 'Toys', icon: ToyBrick, color: 'orange' }
   ];
+
+ async function handlepayment(){
+       setLoading(true);
+    const value=  await MakePayment(donorInfo,moneyDonation.amount,setSubmitSuccess);
+      // console.log(value.code);
+      setLoading(false);
+      // if(value.code!="BAD_REQUEST_ERROR"){
+      
+      // setSubmitSuccess(true)
+      // }
+      // else setSubmitSuccess(false);
+  }
 
   const handleDonorInfoChange = (e) => {
     setDonorInfo({
@@ -184,6 +198,12 @@ const DonatePage = () => {
       setIsSubmitting(false);
     }
   };
+
+  if(loading){
+    return (<div >
+      Loading...
+    </div>)
+  }
 
   if (submitSuccess) {
     return (
@@ -463,6 +483,7 @@ const DonatePage = () => {
             {/* Submit Button */}
             <div className="text-center pt-6">
               <button
+                onClick={()=>handlepayment()}
                 type="submit"
                 disabled={isSubmitting}
                 className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-8 py-3 rounded-lg font-medium transition duration-200 flex items-center gap-2 mx-auto"
@@ -473,8 +494,8 @@ const DonatePage = () => {
                     Submitting...
                   </>
                 ) : (
-                  <>
-                    <Heart className="h-5 w-5" />
+                  < >
+                    <Heart  className="h-5 w-5" />
                     Submit Donation
                   </>
                 )}

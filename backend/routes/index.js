@@ -11,6 +11,8 @@ import aanganwadiRouter from "./aanganwadiRoutes.js";
 import notificationRoutes from "./notififcationRoutes.js";
 import inventoryRouter from "./inventoryRoutes.js";
 import appealRouter from "./appealRoutes.js";
+import paymentRouter from "./payment.js"
+
 
 const router = express.Router();
 
@@ -26,5 +28,6 @@ router.use("/aanganwadi", aanganwadiRouter);
 router.use("/notifications",notificationRoutes);
 router.use("/inventory", inventoryRouter);
 router.use("/appeals", appealRouter);
+router.use('/payment',paymentRouter)
 
 export default router;
