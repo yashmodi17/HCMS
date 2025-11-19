@@ -135,8 +135,26 @@ const AppealSchema = new mongoose.Schema(
 // Generate appeal ID
 AppealSchema.pre('save', async function(next) {
   if (!this.appealId) {
-    const count = await mongoose.model('Appeal').countDocuments();
-    this.appealId = `APP${String(count + 1).padStart(6, '0')}`;
+    try {
+      // Find the highest existing appealId
+      const lastAppeal = await mongoose.model('Appeal')
+        .findOne({}, { appealId: 1 })
+        .sort({ appealId: -1 })
+        .lean();
+      
+      let nextNumber = 1;
+      if (lastAppeal && lastAppeal.appealId) {
+        // Extract number from appealId (e.g., "APP000002" -> 2)
+        const lastNumber = parseInt(lastAppeal.appealId.replace('APP', ''), 10);
+        nextNumber = lastNumber + 1;
+      }
+      
+      this.appealId = `APP${String(nextNumber).padStart(6, '0')}`;
+    } catch (error) {
+      console.error('Error generating appealId:', error);
+      // Fallback to timestamp-based ID if there's an error
+      this.appealId = `APP${Date.now()}`;
+    }
   }
   next();
 });

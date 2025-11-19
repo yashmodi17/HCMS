@@ -49,6 +49,9 @@ const DonatePage = () => {
   ];
 
  async function handlepayment(){
+  if(!moneyDonation.amount|| moneyDonation.amount==0){
+    return;
+  }
        setLoading(true);
     const value=  await MakePayment(donorInfo,moneyDonation.amount,setSubmitSuccess);
       // console.log(value.code);
@@ -482,24 +485,47 @@ const DonatePage = () => {
 
             {/* Submit Button */}
             <div className="text-center pt-6">
-              <button
-                onClick={()=>handlepayment()}
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-8 py-3 rounded-lg font-medium transition duration-200 flex items-center gap-2 mx-auto"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Submitting...
-                  </>
-                ) : (
-                  < >
-                    <Heart  className="h-5 w-5" />
-                    Submit Donation
-                  </>
-                )}
-              </button>
+              {activeTab === 'money' ? (
+                <button
+                  onClick={(e)=>{
+                    e.preventDefault();
+                    handlepayment();
+                  }}
+                  type="button"
+                  disabled={isSubmitting || loading}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-8 py-3 rounded-lg font-medium transition duration-200 flex items-center gap-2 mx-auto"
+                >
+                  {isSubmitting || loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Processing Payment...
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="h-5 w-5" />
+                      Proceed to Payment
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-8 py-3 rounded-lg font-medium transition duration-200 flex items-center gap-2 mx-auto"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="h-5 w-5" />
+                      Submit Donation
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </form>
         </div>
