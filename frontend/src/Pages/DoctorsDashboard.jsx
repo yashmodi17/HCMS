@@ -115,6 +115,13 @@ const DoctorsDashboard = () => {
                 <Heart className="h-4 w-4 inline mr-1" />
                 {volunteerAanganwadis.length} Volunteer Centers
               </div>
+              <button
+                onClick={() => window.location.href='/ai-bot'}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition duration-200 text-sm"
+              >
+                <Activity className="h-4 w-4" />
+                AI Assistant
+              </button>
             </div>
           </div>
         </div>

@@ -370,7 +370,7 @@ const AanganwadiStaffDashboard = () => {
             Add New Child
           </button>
           <Link
-            to="/aibot"
+            to="/ai-bot"
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition duration-200"
           >
             <MessageCircle className="h-4 w-4" />

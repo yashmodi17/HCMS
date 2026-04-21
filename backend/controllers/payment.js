@@ -5,10 +5,14 @@ export const capturePayment = async (req, res) => {
 //   const { courses } = req.body
 //   const userId = req.user.id
 console.log("here");
-  let total_amount = req.body.amount*10;
+  const totalAmount = Number(req.body.amount);
+
+  if (!totalAmount || totalAmount <= 0) {
+    return res.status(400).json({ success: false, message: "Invalid amount." });
+  }
 
   const options = {
-    amount: total_amount * 100,
+    amount: Math.round(totalAmount * 100),
     currency: "INR",
     receipt: Math.random(Date.now()).toString(),
   }

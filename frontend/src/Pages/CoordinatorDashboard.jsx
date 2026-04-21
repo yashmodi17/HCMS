@@ -216,9 +216,16 @@ const CoordinatorDashboard = () => {
           <div className="flex justify-between items-center py-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Coordinator Dashboard</h1>
-              <p className="text-sm text-gray-500">Welcome back, {user?.name}</p>
+              <p className="text-sm text-gray-500 mb-2">Welcome back, {user?.name}</p>
+              <button
+                onClick={() => window.location.href='/ai-bot'}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition duration-200 text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                AI Assistant
+              </button>
             </div>
-            
+
             {/* Aanganwadi Info Header */}
             {aanganwadiInfo && (
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">

@@ -30,10 +30,12 @@ const Navbar = React.memo(() => {
     // Redirect based on role
     if (user.role === "doctor") {
       navigate("/doctor");
-    } else if (user.role === "student") {
+    } else if (user.role === "student" || user.role === "staff") {
       navigate("/profile");
     } else if (user.role === "admin") {
       navigate("/admin");
+    } else if (user.role === "coordinator") {
+      navigate("/coordinator-dashboard");
     } else {
       console.log("Unknown role:", user.role);
     }
@@ -63,6 +65,13 @@ const Navbar = React.memo(() => {
 
       <ul className="hidden md:flex space-x-6 text-lg text-gray-700">
         <li><Link to="/" className="hover:text-green-500">Home</Link></li>
+        {isLoggedIn && (
+          <li>
+            <button onClick={handleProfileClick} className="hover:text-green-500 bg-transparent border-none cursor-pointer">
+              Dashboard
+            </button>
+          </li>
+        )}
         <li><Link to="/donate" className="hover:text-green-500">Donate</Link></li>
         <li><Link to="/about-us" className="hover:text-green-500">About Us</Link></li>
       </ul>
@@ -107,6 +116,12 @@ const Navbar = React.memo(() => {
             navigate("/");
             toggleMenu();
           }} className="text-lg hover:text-green-500 cursor-pointer">Home</div>
+          {isLoggedIn && (
+            <div onClick={() => {
+              handleProfileClick();
+              toggleMenu();
+            }} className="text-lg hover:text-green-500 cursor-pointer">Dashboard</div>
+          )}
           <div onClick={() => {
             navigate("/donate");
             toggleMenu();

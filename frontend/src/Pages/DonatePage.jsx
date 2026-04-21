@@ -52,10 +52,40 @@ const DonatePage = () => {
   if(!moneyDonation.amount|| moneyDonation.amount==0){
     return;
   }
-       setLoading(true);
-    const value=  await MakePayment(donorInfo,moneyDonation.amount,setSubmitSuccess);
-      // console.log(value.code);
+      setLoading(true);
+    setError('');
+
+    try {
+      const paymentResult = await MakePayment(donorInfo, moneyDonation.amount, setSubmitSuccess);
+
+      if (!paymentResult?.razorpay_payment_id) {
+        setError('Payment was not completed.');
+        return;
+      }
+
+      await api.post('/donations/create', {
+        donorName: donorInfo.donorName,
+        donorEmail: donorInfo.donorEmail,
+        donorPhone: donorInfo.donorPhone,
+        donorAddress: donorInfo.donorAddress,
+        donationType: 'money',
+        amount: moneyDonation.amount,
+        paymentMethod: 'online',
+        transactionId: paymentResult.razorpay_payment_id,
+      });
+
+      setSubmitSuccess(true);
+      setMoneyDonation({
+        amount: '',
+        paymentMethod: 'online',
+        transactionId: ''
+      });
+    } catch (err) {
+      console.error('Error during payment/donation save:', err);
+      setError('Payment was successful but donation could not be saved. Please contact support.');
+    } finally {
       setLoading(false);
+    }
       // if(value.code!="BAD_REQUEST_ERROR"){
       
       // setSubmitSuccess(true)

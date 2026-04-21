@@ -58,7 +58,7 @@ export async function MakePayment(
     const options = {
       key: "rzp_test_FygXdONEKJQmc4",
       currency: orderResponse.data.data.currency,
-      amount: `${orderResponse.data.data.amount*10}`,
+      amount: `${orderResponse.data.data.amount}`,
       order_id: orderResponse.data.data.id,
       name: "AnganAsha",
       description: "Thank you for Donating",
@@ -67,26 +67,33 @@ export async function MakePayment(
         name: `${user_details.name}`,
         email: user_details.email,
       },
-      handler: function (response) {
-        sendPaymentSuccessEmail(setSubmitSucess)
-        verifyPayment()
-      },
     }
     console.log(options)
     const paymentObject = new window.Razorpay(options)
 
-    paymentObject.open()
-    paymentObject.on("payment.failed", function (response) {
-      toast.error(" Payment Failed.")
-      console.log(response.error)
-      setSubmitSucess(false);
+    const paymentResult = await new Promise((resolve, reject) => {
+      options.handler = function (response) {
+        resolve(response)
+      }
+
+      const checkout = new window.Razorpay(options)
+      checkout.open()
+      checkout.on("payment.failed", function (response) {
+        toast.error("Payment Failed.")
+        console.log(response.error)
+        setSubmitSucess(false)
+        reject(response.error || new Error("Payment failed"))
+      })
     })
-    return 1;
+
+    return paymentResult
   } catch (error) {
     console.log("PAYMENT API ERROR............", error)
     toast.error("Could Not make Payment.")
+    return null
+  } finally {
+    toast.dismiss(toastId)
   }
-  toast.dismiss(toastId)
 }
 
 function sendPaymentSuccessEmail(setSubmitSucess){
